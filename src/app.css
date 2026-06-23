@@ -14,10 +14,10 @@
   --line-2: rgba(32, 32, 32, 0.16);
   --chip: rgba(1, 75, 170, 0.08);
 
-  --radius: 16px;
-  --radius-sm: 10px;
+  --radius: 18px;
+  --radius-sm: 14px;
   --radius-lg: 24px;
-  --maxw: 1120px;
+  --maxw: 1240px;
 
   --font: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --mono: 'DM Mono', ui-monospace, 'SF Mono', Menlo, monospace;

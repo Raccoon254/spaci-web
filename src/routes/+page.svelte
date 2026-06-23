@@ -100,14 +100,14 @@
           <span class="light"></span>
         </span>
         <span class="mock-title">
-          <span class="accent-mark"><Mark size={14} /></span>
+          <span class="accent-mark"><Mark size={18} /></span>
           Spaci
         </span>
       </div>
 
       <div class="mock-body">
         <div class="scan">
-          <span class="accent-mark"><Mark size={56} anim="orbit" /></span>
+          <span class="accent-mark"><Mark size={60} anim="orbit" /></span>
           <span class="scan-label">Scanning projects…</span>
         </div>
 

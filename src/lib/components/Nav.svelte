@@ -5,7 +5,7 @@
 <header class="nav">
   <div class="wrap nav-inner">
     <a class="brand" href="/" aria-label="Spaci home">
-      <span class="brand-mark"><Mark size={26} /></span>
+      <span class="brand-mark"><Mark size={30} /></span>
       <span class="wordmark">spaci<span class="dot">.</span></span>
     </a>
 

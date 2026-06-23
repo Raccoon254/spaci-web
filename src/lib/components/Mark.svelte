@@ -12,8 +12,9 @@
   class="spaci-mark anim-{anim}"
   width={size}
   height={size}
-  viewBox="0 0 100 100"
+  viewBox="15 15 70 70"
   fill="none"
+  style="overflow:visible"
   aria-hidden="true"
 >
   <g class="ring">
@@ -98,7 +99,7 @@
     animation: ring-spin 4.2s linear infinite;
   }
   .anim-orbit .seg {
-    opacity: calc(0.25 + var(--i) * 0.14);
+    opacity: calc(0.62 + var(--i) * 0.076);
   }
 
   @media (prefers-reduced-motion: reduce) {
