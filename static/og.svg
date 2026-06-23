@@ -10,26 +10,14 @@
     </g>
   </defs>
 
-  <rect width="1200" height="630" fill="#014BAA" />
+  <rect width="1200" height="630" fill="#ffffff" />
 
-  <!-- faint oversized mark watermark -->
-  <use href="#mark" fill="#F8F3F0" opacity="0.08" transform="translate(760 60) scale(7.2)" />
+  <use href="#mark" fill="#014BAA" transform="translate(535 175) scale(1.3)" />
 
-  <!-- crisp mark -->
-  <use href="#mark" fill="#F8F3F0" transform="translate(835 175) scale(2.9)" />
+  <text x="600" y="408" fill="#202020" text-anchor="middle"
+        font-family="DM Sans, sans-serif" font-size="92" font-weight="700"
+        letter-spacing="-3">spaci<tspan fill="#014BAA">.</tspan></text>
 
-  <!-- text block -->
-  <text x="92" y="180" fill="#F8F3F0" fill-opacity="0.68"
-        font-family="Helvetica, Arial, sans-serif" font-size="26" font-weight="600"
-        letter-spacing="4">DEV + MAC DISK CLEANER</text>
-
-  <text x="88" y="318" fill="#F8F3F0"
-        font-family="Helvetica, Arial, sans-serif" font-size="132" font-weight="700"
-        letter-spacing="-4">spaci<tspan fill="#9FC0EC">.</tspan></text>
-
-  <text x="92" y="400" fill="#F8F3F0" fill-opacity="0.9"
-        font-family="Helvetica, Arial, sans-serif" font-size="42" font-weight="500">Reclaim your disk from build artifacts.</text>
-
-  <text x="92" y="556" fill="#F8F3F0" fill-opacity="0.6"
-        font-family="Helvetica, Arial, sans-serif" font-size="27" font-weight="500">spaci.kentom.co.ke   ·   built by kentom.co.ke</text>
+  <text x="600" y="470" fill="#5b5650" text-anchor="middle"
+        font-family="DM Sans, sans-serif" font-size="30" font-weight="500">Reclaim your disk</text>
 </svg>
