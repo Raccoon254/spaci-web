@@ -7,7 +7,7 @@
     <div class="top">
       <div class="brand-col">
         <a class="brand" href="/" aria-label="Spaci home">
-          <Mark size={22} />
+          <span class="brand-mark"><Mark size={22} /></span>
           <span class="wordmark">spaci<span class="dot">.</span></span>
         </a>
         <p class="tagline">Reclaim your disk from build artifacts.</p>
@@ -55,6 +55,11 @@
     align-items: center;
     gap: 9px;
     color: var(--ink);
+  }
+
+  .brand-mark {
+    display: inline-flex;
+    color: var(--accent);
   }
 
   .wordmark {

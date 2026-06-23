@@ -1,7 +1,8 @@
 import { error, redirect } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
-import { releases, latest, type Platform, type Release, type ReleaseFile } from '$lib/releases';
+import { type Platform, type Release, type ReleaseFile } from '$lib/releases';
 import { prisma } from '$lib/server/db';
+import { getLatest, getReleases } from '$lib/server/releases-source';
 import type { RequestHandler } from './$types';
 
 // THE UPDATE FEED for electron-updater (generic provider).
@@ -27,8 +28,21 @@ const FEED_PLATFORM: Record<string, Platform> = {
 
 const INSTALLER_EXT = ['.dmg', '.exe', '.AppImage', '.zip', '.blockmap'];
 
-// Pick the primary installer for a platform. For mac we prefer Apple Silicon
-// (arm64) since that is the default arch electron-updater resolves on modern Macs.
+// The files electron-updater actually downloads to UPDATE an installed app:
+// on macOS that is the .zip (the .dmg is for fresh installs only), on Windows
+// the .exe, on Linux the .AppImage. We feed those into the yml so auto-update
+// resolves the right artifact. When only a .dmg is present (the static baseline
+// before a real build), we fall back to whatever we have.
+function updateArtifacts(files: ReleaseFile[], platform: Platform): ReleaseFile[] {
+  if (platform === 'mac') {
+    const zips = files.filter((f) => /\.zip$/i.test(f.file));
+    if (zips.length) return zips;
+  }
+  return files;
+}
+
+// Pick the primary artifact for a platform. For mac we prefer Apple Silicon
+// (arm64), the default arch electron-updater resolves on modern Macs.
 function primaryFile(files: ReleaseFile[], platform: Platform): ReleaseFile | undefined {
   if (platform === 'mac') {
     const arm =
@@ -47,7 +61,10 @@ function primaryFile(files: ReleaseFile[], platform: Platform): ReleaseFile | un
 // will only verify (and thus complete) downloads once these are filled in from
 // the electron-builder *.yml output for the real release.
 function buildYaml(release: Release, platform: Platform): string {
-  const files = release.files.filter((f) => f.platform === platform);
+  const files = updateArtifacts(
+    release.files.filter((f) => f.platform === platform),
+    platform
+  );
   const primary = primaryFile(files, platform);
   if (!primary) return '';
 
@@ -68,7 +85,10 @@ function buildYaml(release: Release, platform: Platform): string {
   return lines.join('\n') + '\n';
 }
 
-function findFileAcrossReleases(name: string): { release: Release; file: ReleaseFile } | undefined {
+function findFileAcrossReleases(
+  name: string,
+  releases: Release[]
+): { release: Release; file: ReleaseFile } | undefined {
   for (const r of releases) {
     const f = r.files.find((x) => x.file === name);
     if (f) return { release: r, file: f };
@@ -82,7 +102,8 @@ export const GET: RequestHandler = async ({ params }) => {
   // 1. The electron-updater feed files.
   const platform = FEED_PLATFORM[file];
   if (platform) {
-    const yaml = buildYaml(latest, platform);
+    const release = await getLatest();
+    const yaml = buildYaml(release, platform);
     if (!yaml) throw error(404, 'No release artifact for this platform');
     return new Response(yaml, {
       headers: {
@@ -95,7 +116,8 @@ export const GET: RequestHandler = async ({ params }) => {
 
   // 2. An actual installer / blockmap download.
   if (INSTALLER_EXT.some((ext) => file.endsWith(ext))) {
-    const match = findFileAcrossReleases(file);
+    const all = await getReleases();
+    const match = findFileAcrossReleases(file, all);
 
     // Record a download event, best-effort. Never block the redirect on the DB.
     if (match) {
@@ -114,7 +136,9 @@ export const GET: RequestHandler = async ({ params }) => {
 
     // Resolve the version for the GitHub releases URL pattern from the matched
     // release, falling back to the latest version when the file is unknown.
-    const version = match?.release.version ?? latest.version;
+    // getReleases() always returns at least the static baseline, so all[0]
+    // exists; the ?? '' is only to satisfy the type checker.
+    const version = match?.release.version ?? all[0]?.version ?? '';
 
     // Redirect to wherever the built installers are actually hosted.
     //

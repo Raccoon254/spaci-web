@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <g id="mark">
+      <ellipse cx="50" cy="22" rx="12" ry="5.5" transform="rotate(0 50 50)" />
+      <ellipse cx="50" cy="22" rx="12" ry="5.5" transform="rotate(60 50 50)" />
+      <ellipse cx="50" cy="22" rx="12" ry="5.5" transform="rotate(120 50 50)" />
+      <ellipse cx="50" cy="22" rx="12" ry="5.5" transform="rotate(180 50 50)" />
+      <ellipse cx="50" cy="22" rx="12" ry="5.5" transform="rotate(240 50 50)" />
+      <ellipse cx="50" cy="22" rx="12" ry="5.5" transform="rotate(300 50 50)" />
+    </g>
+  </defs>
+
+  <rect width="1200" height="630" fill="#014BAA" />
+
+  <!-- faint oversized mark watermark -->
+  <use href="#mark" fill="#F8F3F0" opacity="0.08" transform="translate(760 60) scale(7.2)" />
+
+  <!-- crisp mark -->
+  <use href="#mark" fill="#F8F3F0" transform="translate(835 175) scale(2.9)" />
+
+  <!-- text block -->
+  <text x="92" y="180" fill="#F8F3F0" fill-opacity="0.68"
+        font-family="Helvetica, Arial, sans-serif" font-size="26" font-weight="600"
+        letter-spacing="4">DEV + MAC DISK CLEANER</text>
+
+  <text x="88" y="318" fill="#F8F3F0"
+        font-family="Helvetica, Arial, sans-serif" font-size="132" font-weight="700"
+        letter-spacing="-4">spaci<tspan fill="#9FC0EC">.</tspan></text>
+
+  <text x="92" y="400" fill="#F8F3F0" fill-opacity="0.9"
+        font-family="Helvetica, Arial, sans-serif" font-size="42" font-weight="500">Reclaim your disk from build artifacts.</text>
+
+  <text x="92" y="556" fill="#F8F3F0" fill-opacity="0.6"
+        font-family="Helvetica, Arial, sans-serif" font-size="27" font-weight="500">spaci.kentom.co.ke   ·   built by kentom.co.ke</text>
+</svg>

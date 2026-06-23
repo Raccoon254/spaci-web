@@ -1,7 +1,11 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { latest, filesFor, fileUrl, type Platform } from '$lib/releases';
+  import { filesFor, fileUrl, type Platform, type ReleaseFile } from '$lib/releases';
   import Mark from '$lib/components/Mark.svelte';
+  import Seo from '$lib/components/Seo.svelte';
+  import type { PageData } from './$types';
+
+  export let data: PageData;
 
   let os: Platform = 'mac';
   let copied = false;
@@ -14,22 +18,22 @@
 
   $: osLabel = labels[os];
 
-  const macFiles = filesFor('mac');
-  const winFiles = filesFor('windows');
-  const linuxFiles = filesFor('linux');
+  $: macFiles = filesFor('mac', data.latest);
+  $: winFiles = filesFor('windows', data.latest);
+  $: linuxFiles = filesFor('linux', data.latest);
 
-  const platformCards: { key: Platform; name: string; files: typeof macFiles }[] = [
+  $: platformCards = [
     { key: 'mac', name: 'macOS', files: macFiles },
     { key: 'windows', name: 'Windows', files: winFiles },
     { key: 'linux', name: 'Linux', files: linuxFiles }
-  ];
+  ] satisfies { key: Platform; name: string; files: ReleaseFile[] }[];
 
   const dateFmt = new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric'
   });
-  $: releaseDate = dateFmt.format(new Date(latest.date));
+  $: releaseDate = dateFmt.format(new Date(data.latest.date));
 
   const scanRows = [
     { name: 'node_modules', path: '~/dev/portfolio', size: '1.2 GB' },
@@ -62,13 +66,11 @@
   });
 </script>
 
-<svelte:head>
-  <title>Spaci, reclaim your disk from build artifacts</title>
-  <meta
-    name="description"
-    content="Spaci finds the build artifacts, dependency caches and dead projects quietly eating your SSD, then clears them in one click. Safe by design, free and open source for macOS, Windows and Linux."
-  />
-</svelte:head>
+<Seo
+  title="Spaci, reclaim your disk from build artifacts"
+  description="Spaci finds the build artifacts, dependency caches and dead projects quietly eating your SSD, then clears them in one click. Safe by design, free and open source for macOS, Windows and Linux."
+  path="/"
+/>
 
 <!-- Hero -->
 <section class="hero">
@@ -98,14 +100,14 @@
           <span class="light"></span>
         </span>
         <span class="mock-title">
-          <Mark size={14} />
+          <span class="accent-mark"><Mark size={14} /></span>
           Spaci
         </span>
       </div>
 
       <div class="mock-body">
         <div class="scan">
-          <Mark size={56} anim="chase" />
+          <span class="accent-mark"><Mark size={56} anim="orbit" /></span>
           <span class="scan-label">Scanning projects…</span>
         </div>
 
@@ -144,7 +146,7 @@
 
     <div class="feature-grid">
       <article class="card">
-        <Mark size={22} />
+        <span class="accent-mark"><Mark size={22} /></span>
         <h3>One-click cleanup</h3>
         <p>
           Select what to remove and Spaci clears node_modules, build output and dependency caches in
@@ -152,7 +154,7 @@
         </p>
       </article>
       <article class="card">
-        <Mark size={22} />
+        <span class="accent-mark"><Mark size={22} /></span>
         <h3>Smart detection</h3>
         <p>
           Spaci scans your machine and recognises project types automatically, so it always knows
@@ -160,7 +162,7 @@
         </p>
       </article>
       <article class="card">
-        <Mark size={22} />
+        <span class="accent-mark"><Mark size={22} /></span>
         <h3>Safe by design</h3>
         <p>
           Every action shows a preview first, and reversible actions are kept separate from
@@ -195,7 +197,7 @@
             {/each}
           </div>
           <a class="btn btn-primary dl-btn" href={fileUrl(card.files[0].file)}>Download</a>
-          <p class="dl-meta mono">v{latest.version} · {releaseDate}</p>
+          <p class="dl-meta mono">v{data.latest.version} · {releaseDate}</p>
         </article>
       {/each}
     </div>
@@ -222,13 +224,13 @@
 
     <div class="teaser-card">
       <div class="teaser-top">
-        <span class="ver mono">v{latest.version}</span>
+        <span class="ver mono">v{data.latest.version}</span>
         <span class="teaser-date mono">{releaseDate}</span>
-        <span class="tag" class:green={latest.major}>{latest.tag}</span>
+        <span class="tag" class:green={data.latest.major}>{data.latest.tag}</span>
       </div>
-      <p class="teaser-summary">{latest.summary}</p>
+      <p class="teaser-summary">{data.latest.summary}</p>
       <ul class="teaser-list">
-        {#each latest.added.slice(0, 4) as item}
+        {#each data.latest.added.slice(0, 4) as item}
           <li>{item}</li>
         {/each}
       </ul>

@@ -80,6 +80,13 @@ p {
   font-family: var(--mono);
 }
 
+/* The Spaci mark inherits currentColor, so this paints it the brand royal blue
+   wherever it should read as a logo on the light background. */
+.accent-mark {
+  display: inline-flex;
+  color: var(--accent);
+}
+
 /* buttons */
 .btn {
   display: inline-flex;

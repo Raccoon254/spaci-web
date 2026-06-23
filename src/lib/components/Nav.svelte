@@ -5,7 +5,7 @@
 <header class="nav">
   <div class="wrap nav-inner">
     <a class="brand" href="/" aria-label="Spaci home">
-      <Mark size={26} />
+      <span class="brand-mark"><Mark size={26} /></span>
       <span class="wordmark">spaci<span class="dot">.</span></span>
     </a>
 
@@ -43,6 +43,18 @@
     align-items: center;
     gap: 9px;
     color: var(--ink);
+  }
+
+  /* The mark is the brand accent so it reads as a logo on the cream nav. */
+  .brand-mark {
+    display: inline-flex;
+    color: var(--accent);
+  }
+  .brand-mark :global(svg) {
+    transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .brand:hover .brand-mark :global(svg) {
+    transform: rotate(60deg);
   }
 
   .wordmark {

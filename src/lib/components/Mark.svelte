@@ -3,7 +3,7 @@
   // steps. Motion variants match the desktop app: static, breathe, chase, spin,
   // gauge. Color follows `currentColor` so it inherits from the parent.
   export let size = 28;
-  export let anim: 'none' | 'breathe' | 'chase' | 'spin' | 'gauge' = 'none';
+  export let anim: 'none' | 'breathe' | 'chase' | 'spin' | 'gauge' | 'orbit' = 'none';
 
   const segs = [0, 60, 120, 180, 240, 300];
 </script>
@@ -91,6 +91,14 @@
   }
   .anim-gauge .seg {
     opacity: calc(0.3 + var(--i) * 0.12);
+  }
+
+  /* orbit: ring spins with a comet-trail gradient of segment opacity */
+  .anim-orbit .ring {
+    animation: ring-spin 4.2s linear infinite;
+  }
+  .anim-orbit .seg {
+    opacity: calc(0.25 + var(--i) * 0.14);
   }
 
   @media (prefers-reduced-motion: reduce) {

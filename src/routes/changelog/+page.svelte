@@ -1,5 +1,8 @@
 <script lang="ts">
-  import { releases } from '$lib/releases';
+  import Seo from '$lib/components/Seo.svelte';
+  import type { PageData } from './$types';
+
+  export let data: PageData;
 
   const dateFmt = new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
@@ -12,10 +15,11 @@
   }
 </script>
 
-<svelte:head>
-  <title>Changelog · Spaci</title>
-  <meta name="description" content="Every release of Spaci, with what was added, improved and fixed in each version." />
-</svelte:head>
+<Seo
+  title="Changelog · Spaci"
+  description="Every release of Spaci, with what was added, improved and fixed in each version."
+  path="/changelog"
+/>
 
 <section class="page wrap">
   <header class="head">
@@ -27,7 +31,7 @@
   </header>
 
   <ol class="timeline">
-    {#each releases as r, i}
+    {#each data.releases as r, i}
       <li class="entry">
         <span class="node" class:major={r.major}></span>
 

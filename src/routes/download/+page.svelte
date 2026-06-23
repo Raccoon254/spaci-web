@@ -1,6 +1,10 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { latest, filesFor, fileUrl, type Platform, type ReleaseFile } from '$lib/releases';
+  import { filesFor, fileUrl, type Platform, type ReleaseFile } from '$lib/releases';
+  import Seo from '$lib/components/Seo.svelte';
+  import type { PageData } from './$types';
+
+  export let data: PageData;
 
   let os: Platform = 'mac';
   let copied = false;
@@ -12,26 +16,26 @@
   };
   $: osLabel = labels[os];
 
-  const macFiles = filesFor('mac');
-  const winFiles = filesFor('windows');
-  const linuxFiles = filesFor('linux');
+  $: macFiles = filesFor('mac', data.latest);
+  $: winFiles = filesFor('windows', data.latest);
+  $: linuxFiles = filesFor('linux', data.latest);
 
-  const groups: { key: Platform; name: string; files: ReleaseFile[] }[] = [
+  $: groups = [
     { key: 'mac', name: 'macOS', files: macFiles },
     { key: 'windows', name: 'Windows', files: winFiles },
     { key: 'linux', name: 'Linux', files: linuxFiles }
-  ];
+  ] satisfies { key: Platform; name: string; files: ReleaseFile[] }[];
 
   const dateFmt = new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric'
   });
-  $: releaseDate = dateFmt.format(new Date(latest.date));
+  $: releaseDate = dateFmt.format(new Date(data.latest.date));
 
   // The recommended download for the detected OS. For mac, default to Apple
   // Silicon; keep the Intel build as a secondary link.
-  $: recoFiles = filesFor(os);
+  $: recoFiles = filesFor(os, data.latest);
   $: primaryFile =
     os === 'mac'
       ? recoFiles.find((f) => f.arch === 'Apple Silicon') ?? recoFiles[0]
@@ -63,19 +67,17 @@
   });
 </script>
 
-<svelte:head>
-  <title>Download Spaci</title>
-  <meta
-    name="description"
-    content="Download Spaci for macOS, Windows or Linux. Free and open source, with automatic updates."
-  />
-</svelte:head>
+<Seo
+  title="Download Spaci"
+  description="Download Spaci for macOS, Windows or Linux. Free and open source, with automatic updates."
+  path="/download"
+/>
 
 <section class="page wrap">
   <header class="head">
     <span class="eyebrow">Download</span>
     <h1>Get Spaci for {osLabel}</h1>
-    <p class="intro mono">v{latest.version} · Released {releaseDate}</p>
+    <p class="intro mono">v{data.latest.version} · Released {releaseDate}</p>
   </header>
 
   <!-- Recommended download -->
