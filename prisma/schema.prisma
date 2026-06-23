@@ -1,0 +1,62 @@
+// Prisma schema for the Spaci web backend.
+//
+// The static src/lib/releases.ts stays the canonical list rendered on the site.
+// This database mirrors that data (via prisma/seed.ts and the POST /api/releases
+// publish hook) so the dynamic endpoints can serve and analyse it.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Release {
+  id        String        @id @default(cuid())
+  version   String        @unique
+  date      DateTime
+  tag       String
+  major     Boolean       @default(false)
+  summary   String
+  added     String[]
+  improved  String[]
+  fixed     String[]
+  createdAt DateTime      @default(now())
+  files     ReleaseFile[]
+}
+
+model ReleaseFile {
+  id        String  @id @default(cuid())
+  platform  String
+  arch      String
+  file      String
+  size      String
+  bytes     Int
+  sha512    String  @default("")
+  release   Release @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+  releaseId String
+
+  @@index([releaseId])
+}
+
+// Release-announcement signups ("notify me on new releases").
+model Subscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+  confirmed Boolean  @default(false)
+}
+
+// Simple download analytics, one row per installer download.
+model DownloadEvent {
+  id       String   @id @default(cuid())
+  version  String
+  platform String
+  file     String
+  at       DateTime @default(now())
+
+  @@index([version])
+}
