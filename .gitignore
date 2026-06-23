@@ -9,3 +9,6 @@ node_modules
 /static/updates/*
 !/static/updates/.gitkeep
 vite.config.ts.timestamp-*
+
+# vercel
+.vercel
