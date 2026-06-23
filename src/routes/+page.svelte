@@ -50,9 +50,14 @@
     return 'mac';
   }
 
-  async function copyBrew() {
+  $: installCmd =
+    os === 'windows'
+      ? 'irm https://spaci.kentom.co.ke/install.ps1 | iex'
+      : 'curl -fsSL https://spaci.kentom.co.ke/install.sh | bash';
+
+  async function copyCmd() {
     try {
-      await navigator.clipboard.writeText('brew install --cask spaci');
+      await navigator.clipboard.writeText(installCmd);
       copied = true;
       setTimeout(() => (copied = false), 1600);
     } catch {
@@ -209,10 +214,10 @@
     </div>
 
     <div class="brew">
-      <span class="brew-label">Or install with Homebrew</span>
+      <span class="brew-label">Or install from your terminal</span>
       <div class="brew-chip">
-        <code class="mono">brew install --cask spaci</code>
-        <button class="brew-copy" on:click={copyBrew} aria-label="Copy Homebrew command">
+        <code class="mono">{installCmd}</code>
+        <button class="brew-copy" on:click={copyCmd} aria-label="Copy install command">
           {copied ? 'Copied' : 'Copy'}
         </button>
       </div>

@@ -43,6 +43,13 @@
   $: secondaryFile =
     os === 'mac' ? recoFiles.find((f) => f.arch === 'Intel') ?? null : null;
 
+  // One-line terminal installer, like pixen's. macOS/Linux use install.sh,
+  // Windows uses install.ps1. Both resolve the latest version at runtime.
+  $: installCmd =
+    os === 'windows'
+      ? 'irm https://spaci.kentom.co.ke/install.ps1 | iex'
+      : 'curl -fsSL https://spaci.kentom.co.ke/install.sh | bash';
+
   function detectOs(): Platform {
     if (typeof navigator === 'undefined') return 'mac';
     const ua = `${navigator.userAgent} ${navigator.platform || ''}`.toLowerCase();
@@ -52,9 +59,9 @@
     return 'mac';
   }
 
-  async function copyBrew() {
+  async function copyCmd() {
     try {
-      await navigator.clipboard.writeText('brew install --cask spaci');
+      await navigator.clipboard.writeText(installCmd);
       copied = true;
       setTimeout(() => (copied = false), 1600);
     } catch {
@@ -99,10 +106,11 @@
     </div>
   </div>
 
-  <div class="brew">
-    <div class="brew-chip">
-      <code class="mono">brew install --cask spaci</code>
-      <button class="brew-copy" on:click={copyBrew} aria-label="Copy Homebrew command">
+  <div class="install">
+    <span class="install-label">Or install from your terminal</span>
+    <div class="cmd-chip">
+      <code class="mono">{installCmd}</code>
+      <button class="cmd-copy" on:click={copyCmd} aria-label="Copy install command">
         {copied ? 'Copied' : 'Copy'}
       </button>
     </div>
@@ -212,35 +220,46 @@
     font-weight: 500;
   }
 
-  /* Brew */
-  .brew {
-    margin-top: 20px;
+  /* Terminal install */
+  .install {
+    margin-top: 22px;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
   }
-  .brew-chip {
+  .install-label {
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .cmd-chip {
     display: inline-flex;
     align-items: center;
     gap: 14px;
+    max-width: 100%;
     padding: 8px 8px 8px 18px;
     background: var(--paper-2);
     border: 1px solid var(--line);
     border-radius: 999px;
   }
-  .brew-chip code {
-    font-size: 14px;
+  .cmd-chip code {
+    font-size: 13.5px;
     color: var(--ink);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
-  .brew-copy {
+  .cmd-copy {
     border: 1px solid var(--line-2);
     background: transparent;
     border-radius: 999px;
     padding: 6px 14px;
     font-size: 13px;
     color: var(--ink);
+    flex: none;
     transition: border-color 0.15s ease;
   }
-  .brew-copy:hover {
+  .cmd-copy:hover {
     border-color: var(--ink);
   }
 
