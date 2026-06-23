@@ -36,10 +36,9 @@
   $: releaseDate = dateFmt.format(new Date(data.latest.date));
 
   const scanRows = [
-    { name: 'node_modules', path: '~/dev/portfolio', size: '1.2 GB' },
-    { name: '.next cache', path: '~/dev/shop', size: '480 MB' },
-    { name: 'Xcode DerivedData', path: '~/Library/Developer', size: '3.1 GB' },
-    { name: 'Pods', path: '~/dev/app', size: '720 MB' }
+    { name: 'node_modules/', size: '1.42 GB' },
+    { name: '.next/cache/', size: '318 MB' },
+    { name: 'build/', size: '206 MB' }
   ];
 
   function detectOs(): Platform {
@@ -76,19 +75,25 @@
 <section class="hero">
   <div class="wrap hero-grid">
     <div class="hero-copy">
-      <span class="eyebrow">Dev disk cleaner</span>
-      <h1>Take back your disk from node_modules.</h1>
+      <span class="eyebrow"><Mark size={15} /> Dev disk cleaner</span>
+      <h1>Take back your disk from <span class="hl">node_modules.</span></h1>
       <p class="lede">
-        Spaci finds the build artifacts, dependency caches and dead projects quietly eating your
-        SSD, then clears them in one click. Safe by design, with a preview before anything is
-        removed.
+        spaci finds and clears <code>build/</code>, <code>node_modules</code>, <code>.next</code>,
+        <code>dist</code> and other regenerable folders, safely, in one click.
       </p>
 
       <div class="cta-row">
-        <a class="btn btn-primary" href="/download">Download for {osLabel}</a>
-        <a class="btn btn-ghost" href="/changelog">View changelog</a>
+        <a class="btn btn-primary" href="/download"><Mark size={16} /> Download for {osLabel}</a>
+        <a
+          class="btn btn-ghost"
+          href="https://github.com/Raccoon254/spaci"
+          target="_blank"
+          rel="noopener noreferrer">Star on GitHub</a
+        >
       </div>
-      <p class="cta-note mono">Free and open source · macOS, Windows, Linux</p>
+      <p class="cta-note mono">
+        Free &amp; open source · <a href="/#features">see it in motion →</a>
+      </p>
     </div>
 
     <!-- Mock app window -->
@@ -100,37 +105,38 @@
           <span class="light"></span>
         </span>
         <span class="mock-title">
-          <span class="accent-mark"><Mark size={18} /></span>
-          Spaci
+          <span class="accent-mark"><Mark size={17} /></span>
+          spaci
         </span>
+        <button class="mock-clean">Clean now</button>
       </div>
 
       <div class="mock-body">
         <div class="scan">
-          <span class="accent-mark"><Mark size={60} anim="orbit" /></span>
-          <span class="scan-label">Scanning projects…</span>
+          <span class="accent-mark"><Mark size={34} anim="orbit" /></span>
+          <div class="scan-text">
+            <span class="scan-label">Scanning project…</span>
+            <span class="scan-sub mono">1,204 folders · 18,902 files</span>
+          </div>
         </div>
 
         <ul class="rows">
           {#each scanRows as row}
             <li class="row">
-              <span class="row-dot"></span>
-              <span class="row-name">{row.name}</span>
-              <span class="row-path">{row.path}</span>
+              <span class="row-sq"></span>
+              <span class="row-name mono">{row.name}</span>
               <span class="row-size mono">{row.size}</span>
             </li>
           {/each}
         </ul>
+      </div>
 
-        <div class="gauge">
-          <div class="gauge-head">
-            <span class="gauge-label">Reclaimable</span>
-            <span class="gauge-value mono">18.5 GB</span>
-          </div>
-          <div class="gauge-track">
-            <div class="gauge-fill"></div>
-          </div>
-        </div>
+      <div class="mock-foot">
+        <span class="foot-left">
+          <span class="foot-mark"><Mark size={18} /></span>
+          2.13 GB reclaimable
+        </span>
+        <span class="foot-right mono">disk 64% free</span>
       </div>
     </div>
   </div>
@@ -251,14 +257,25 @@
     align-items: center;
   }
   .hero-copy h1 {
-    margin-top: 18px;
-    font-size: clamp(40px, 6vw, 68px);
+    margin-top: 22px;
+    font-size: clamp(40px, 6vw, 66px);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.02;
+  }
+  .hero-copy h1 .hl {
+    color: var(--accent);
   }
   .lede {
     margin-top: 22px;
-    max-width: 560px;
+    max-width: 520px;
     color: var(--muted);
     font-size: 18px;
+  }
+  .lede code {
+    font-family: var(--mono);
+    font-size: 0.9em;
+    color: var(--ink);
   }
   .cta-row {
     margin-top: 32px;
@@ -267,24 +284,29 @@
     flex-wrap: wrap;
   }
   .cta-note {
-    margin-top: 16px;
+    margin-top: 18px;
     font-size: 13px;
     color: var(--muted);
+  }
+  .cta-note a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
   }
 
   /* Mock window */
   .mock {
-    background: var(--paper-2);
+    background: #ffffff;
     border: 1px solid var(--line);
     border-radius: var(--radius-lg);
     overflow: hidden;
+    box-shadow: 0 26px 60px -30px rgba(32, 32, 32, 0.22);
   }
   .mock-bar {
     display: flex;
     align-items: center;
-    gap: 14px;
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--line);
+    gap: 12px;
+    padding: 15px 18px;
   }
   .lights {
     display: inline-flex;
@@ -294,29 +316,49 @@
     width: 11px;
     height: 11px;
     border-radius: 999px;
-    background: var(--line-2);
+    background: #ddd5cb;
   }
   .mock-title {
     display: inline-flex;
     align-items: center;
-    gap: 7px;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .mock-clean {
+    margin-left: auto;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    height: 32px;
+    padding: 0 16px;
+    border-radius: 9px;
     font-size: 13px;
-    font-weight: 500;
-    color: var(--muted);
+    font-weight: 600;
   }
   .mock-body {
-    padding: 28px 22px 24px;
+    padding: 18px 18px 16px;
   }
   .scan {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
     color: var(--accent);
-    padding: 8px 0 24px;
+    padding: 8px 6px 18px;
+  }
+  .scan-text {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
   }
   .scan-label {
-    font-size: 14px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .scan-sub {
+    font-size: 12.5px;
     color: var(--muted);
   }
   .rows {
@@ -330,69 +372,55 @@
   .row {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 11px 12px;
-    border-radius: var(--radius-sm);
+    gap: 13px;
+    padding: 12px 8px;
   }
-  .row:nth-child(odd) {
-    background: rgba(32, 32, 32, 0.02);
+  .row + .row {
+    border-top: 1px solid var(--line);
   }
-  .row-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 999px;
+  .row-sq {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
     background: var(--accent);
     flex: none;
   }
   .row-name {
     font-size: 14px;
-    font-weight: 500;
-    white-space: nowrap;
-  }
-  .row-path {
-    font-size: 13px;
-    color: var(--muted);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    color: var(--ink);
   }
   .row-size {
     margin-left: auto;
     font-size: 13px;
-    color: var(--ink);
+    color: var(--muted);
     flex: none;
   }
-  .gauge {
-    margin-top: 22px;
-    padding-top: 20px;
+
+  /* Mock footer: reclaimable summary */
+  .mock-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 20px;
+    background: #f1ece5;
     border-top: 1px solid var(--line);
   }
-  .gauge-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 9px;
-  }
-  .gauge-label {
-    font-size: 13px;
-    color: var(--muted);
-  }
-  .gauge-value {
+  .foot-left {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
     font-size: 14px;
-    font-weight: 500;
-    color: var(--accent);
+    font-weight: 600;
+    color: var(--ink);
   }
-  .gauge-track {
-    height: 8px;
-    border-radius: 999px;
-    background: rgba(32, 32, 32, 0.06);
-    overflow: hidden;
+  .foot-mark {
+    display: inline-flex;
+    color: var(--green);
   }
-  .gauge-fill {
-    width: 64%;
-    height: 100%;
-    border-radius: 999px;
-    background: var(--accent);
+  .foot-right {
+    font-size: 13px;
+    color: var(--green);
   }
 
   /* Section heads */
