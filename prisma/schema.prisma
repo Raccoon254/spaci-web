@@ -3,15 +3,22 @@
 // The static src/lib/releases.ts stays the canonical list rendered on the site.
 // This database mirrors that data (via prisma/seed.ts and the POST /api/releases
 // publish hook) so the dynamic endpoints can serve and analyse it.
+//
+// IMPORTANT: Spaci shares the kentom.co.ke Neon database with the stevetom
+// portfolio, so every model lives in its OWN Postgres schema ("spaci"), NOT in
+// "public". This keeps `prisma db push` scoped to the spaci schema and means it
+// can never see, alter or drop the portfolio's tables in the public schema.
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
 }
 
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
+  schemas   = ["spaci"]
 }
 
 model Release {
@@ -26,6 +33,8 @@ model Release {
   fixed     String[]
   createdAt DateTime      @default(now())
   files     ReleaseFile[]
+
+  @@schema("spaci")
 }
 
 model ReleaseFile {
@@ -40,6 +49,7 @@ model ReleaseFile {
   releaseId String
 
   @@index([releaseId])
+  @@schema("spaci")
 }
 
 // Release-announcement signups ("notify me on new releases").
@@ -48,6 +58,8 @@ model Subscriber {
   email     String   @unique
   createdAt DateTime @default(now())
   confirmed Boolean  @default(false)
+
+  @@schema("spaci")
 }
 
 // Simple download analytics, one row per installer download.
@@ -59,4 +71,5 @@ model DownloadEvent {
   at       DateTime @default(now())
 
   @@index([version])
+  @@schema("spaci")
 }
