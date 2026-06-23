@@ -146,10 +146,14 @@ export const GET: RequestHandler = async ({ params }) => {
     // domain, so we must NOT redirect there (that would loop). In production set
     // INSTALLER_BASE to the real object-storage / Releases base. Otherwise we
     // fall back to the GitHub Releases download URL pattern.
+    // GitHub stores release assets with spaces converted to dots (electron-builder
+    // names the Windows installer "Spaci Setup 1.2.0.exe", GitHub serves it as
+    // "Spaci.Setup.1.2.0.exe"), so normalise the asset name to match.
+    const asset = file.replace(/ /g, '.');
     const base = env.INSTALLER_BASE;
     const target = base
-      ? `${base.replace(/\/$/, '')}/${file}`
-      : `https://github.com/Raccoon254/spaci/releases/download/v${version}/${file}`;
+      ? `${base.replace(/\/$/, '')}/${asset}`
+      : `https://github.com/Raccoon254/spaci/releases/download/v${version}/${asset}`;
 
     throw redirect(302, target);
   }
