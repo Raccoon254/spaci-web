@@ -115,36 +115,6 @@
     return { destroy: () => obs.disconnect() };
   }
 
-  // Subtle scroll parallax: writes a --py offset onto the node as it moves
-  // through the viewport, which its inner image translates by.
-  function parallax(node: HTMLElement, speed = 0.05) {
-    let ticking = false;
-    const update = () => {
-      ticking = false;
-      const rect = node.getBoundingClientRect();
-      const vh = window.innerHeight || 1;
-      // reversed direction, clamped so the scaled image never reveals an edge
-      const raw = (rect.top + rect.height / 2 - vh / 2) * speed;
-      const off = Math.max(-26, Math.min(26, raw));
-      node.style.setProperty('--py', `${off.toFixed(1)}px`);
-    };
-    const onScroll = () => {
-      if (!ticking) {
-        ticking = true;
-        requestAnimationFrame(update);
-      }
-    };
-    update();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll);
-    return {
-      destroy() {
-        window.removeEventListener('scroll', onScroll);
-        window.removeEventListener('resize', onScroll);
-      }
-    };
-  }
-
   onMount(() => {
     os = detectOs();
     mounted = true;
@@ -218,7 +188,7 @@
       </div>
     </div>
     <div class="shot r" use:inview>
-      <div class="shot-frame" use:parallax>
+      <div class="shot-frame">
         <img
           src="/spaci-app.webp"
           alt="The Spaci desktop app showing the Smart Scan screen"
@@ -510,13 +480,6 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transform: translateY(var(--py, 0px)) scale(1.12);
-    will-change: transform;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .shot-frame img {
-      transform: scale(1.12);
-    }
   }
 
   /* ── Section heads ── */
