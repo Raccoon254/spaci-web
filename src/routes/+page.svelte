@@ -940,6 +940,10 @@
     .legend {
       grid-template-columns: 1fr 1fr;
     }
+    /* Tablet: square the CTA band but keep all four borders. */
+    .cta-inner {
+      border-radius: 0;
+    }
   }
   @media (max-width: 600px) {
     /* Hero: left-aligned, tighter, full-width buttons */
