@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { filesFor, fileUrl, type Platform, type ReleaseFile } from '$lib/releases';
+  import { downloadsFor, fileUrl, type Platform, type ReleaseFile } from '$lib/releases';
   import Seo from '$lib/components/Seo.svelte';
   import type { PageData } from './$types';
 
@@ -16,9 +16,9 @@
   };
   $: osLabel = labels[os];
 
-  $: macFiles = filesFor('mac', data.latest);
-  $: winFiles = filesFor('windows', data.latest);
-  $: linuxFiles = filesFor('linux', data.latest);
+  $: macFiles = downloadsFor('mac', data.latest);
+  $: winFiles = downloadsFor('windows', data.latest);
+  $: linuxFiles = downloadsFor('linux', data.latest);
 
   $: groups = [
     { key: 'mac', name: 'macOS', files: macFiles },
@@ -35,7 +35,7 @@
 
   // The recommended download for the detected OS. For mac, default to Apple
   // Silicon; keep the Intel build as a secondary link.
-  $: recoFiles = filesFor(os, data.latest);
+  $: recoFiles = downloadsFor(os, data.latest);
   $: primaryFile =
     os === 'mac'
       ? recoFiles.find((f) => f.arch === 'Apple Silicon') ?? recoFiles[0]

@@ -130,3 +130,12 @@ export function fileUrl(file: string): string {
 export function filesFor(platform: Platform, release: Release = latest): ReleaseFile[] {
   return release.files.filter((f) => f.platform === platform);
 }
+
+// User-facing installers only. macOS ships a .zip alongside the .dmg purely so
+// electron-updater can apply updates, but people should download the .dmg, so we
+// hide the .zip (and any blockmaps) from the download lists.
+export function downloadsFor(platform: Platform, release: Release = latest): ReleaseFile[] {
+  const all = filesFor(platform, release);
+  const installers = all.filter((f) => !/\.(zip|blockmap)$/i.test(f.file));
+  return installers.length ? installers : all;
+}
