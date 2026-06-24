@@ -537,12 +537,30 @@
     .reco {
       align-items: flex-start;
       flex-direction: column;
+      padding: 24px;
     }
     .reco-actions {
       width: 100%;
     }
     .reco-btn {
       width: 100%;
+    }
+    /* Terminal chip: left-aligned and full-width */
+    .brew {
+      align-items: stretch;
+    }
+    .brew-label {
+      text-align: left;
+    }
+    .brew-chip {
+      width: 100%;
+    }
+    /* Footer note: stack and left-align */
+    .foot-card {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 22px;
     }
   }
 </style>

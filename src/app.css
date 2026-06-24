@@ -109,6 +109,11 @@ p {
   margin: 0 auto;
   padding: 0 28px;
 }
+@media (max-width: 600px) {
+  .wrap {
+    padding: 0 20px;
+  }
+}
 
 .mono {
   font-family: var(--mono);

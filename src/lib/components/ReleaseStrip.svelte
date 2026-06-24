@@ -163,23 +163,21 @@
   }
 
   @media (max-width: 720px) {
+    /* Reserve room on the right for the absolute close button so the headline
+       truncates cleanly instead of running underneath it. The whole strip is a
+       link, so the explicit CTA is redundant and hidden here. */
     .strip-inner {
-      padding-left: 20px;
-      gap: 9px;
+      padding: 8px 46px 8px 16px;
+      gap: 8px;
+      font-size: 12.5px;
     }
     .ver,
-    .sep {
+    .sep,
+    .cta {
       display: none;
     }
-    .cta {
-      font-size: 0;
-      gap: 0;
-    }
-    .cta .arrow {
-      font-size: 15px;
-    }
     .close {
-      right: 6px;
+      right: 8px;
     }
   }
 </style>

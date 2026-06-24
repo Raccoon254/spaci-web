@@ -942,7 +942,48 @@
     }
   }
   @media (max-width: 600px) {
-    .legend,
+    /* Hero: left-aligned, tighter, full-width buttons */
+    .hero {
+      min-height: auto;
+      padding: 104px 0 52px;
+      text-align: left;
+    }
+    .hero-inner {
+      align-items: flex-start;
+    }
+    .hero-logo {
+      margin-bottom: 18px;
+    }
+    .hero-inner h1 {
+      font-size: clamp(33px, 10vw, 44px);
+    }
+    .lede {
+      margin-top: 18px;
+      font-size: 16px;
+    }
+    .cta-row {
+      width: 100%;
+      gap: 10px;
+    }
+    .cta-row .btn {
+      width: 100%;
+    }
+
+    /* Storage legend: compact two-up, drop the descriptions */
+    .legend {
+      grid-template-columns: 1fr 1fr;
+      gap: 14px 18px;
+    }
+    .leg-note {
+      display: none;
+    }
+    .cap-card {
+      padding: 22px;
+    }
+    .shot {
+      padding: 0 16px;
+    }
+
     .teaser-list {
       grid-template-columns: 1fr;
     }
@@ -950,6 +991,28 @@
       flex-direction: column;
       align-items: flex-start;
       gap: 8px;
+    }
+
+    /* Final CTA: left-aligned, full-width buttons */
+    .cta-band {
+      text-align: left;
+    }
+    .cta-inner {
+      align-items: flex-start;
+      padding: 40px 20px;
+      border-radius: 0;
+      border-left: none;
+      border-right: none;
+    }
+    .cta-mark {
+      align-self: flex-start;
+    }
+    .cta-actions {
+      width: 100%;
+      justify-content: flex-start;
+    }
+    .cta-actions .btn {
+      width: 100%;
     }
   }
 </style>

@@ -166,7 +166,12 @@
       grid-template-columns: 1fr;
     }
     .head {
-      margin-bottom: 34px;
+      align-items: flex-start;
+      text-align: left;
+      margin-bottom: 30px;
+    }
+    .card {
+      padding: 22px;
     }
   }
 </style>
