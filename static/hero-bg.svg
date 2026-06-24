@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="base" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#242424"/>
+      <stop offset="100%" stop-color="#191919"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="30%" r="62%">
+      <stop offset="0%" stop-color="#014baa" stop-opacity="0.42"/>
+      <stop offset="45%" stop-color="#014baa" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#014baa" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="vignette" cx="50%" cy="40%" r="78%">
+      <stop offset="52%" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.58"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1440" height="900" fill="url(#base)"/>
+
+  <!-- faint concentric rings echoing the mark -->
+  <g fill="none" stroke="#5e93dd" stroke-opacity="0.055">
+    <circle cx="720" cy="300" r="150"/>
+    <circle cx="720" cy="300" r="270"/>
+    <circle cx="720" cy="300" r="400"/>
+    <circle cx="720" cy="300" r="540"/>
+    <circle cx="720" cy="300" r="690"/>
+  </g>
+
+  <rect width="1440" height="900" fill="url(#glow)"/>
+  <rect width="1440" height="900" fill="url(#vignette)"/>
+</svg>

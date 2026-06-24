@@ -1,6 +1,9 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { downloadsFor, fileUrl, type Platform, type ReleaseFile } from '$lib/releases';
+  import Icon from '$lib/components/Icon.svelte';
+  import LogoMotion from '$lib/components/LogoMotion.svelte';
+  import SupportCta from '$lib/components/SupportCta.svelte';
   import Seo from '$lib/components/Seo.svelte';
   import type { PageData } from './$types';
 
@@ -14,17 +17,24 @@
     windows: 'Windows',
     linux: 'Linux'
   };
+  // Real brand marks from svgl.app (static/logos), rendered as <img>.
+  const osLogos: Record<Platform, string> = {
+    mac: '/logos/macos.svg',
+    windows: '/logos/windows.svg',
+    linux: '/logos/linux.svg'
+  };
   $: osLabel = labels[os];
+  $: osLogo = osLogos[os];
 
   $: macFiles = downloadsFor('mac', data.latest);
   $: winFiles = downloadsFor('windows', data.latest);
   $: linuxFiles = downloadsFor('linux', data.latest);
 
-  $: groups = [
-    { key: 'mac', name: 'macOS', files: macFiles },
-    { key: 'windows', name: 'Windows', files: winFiles },
-    { key: 'linux', name: 'Linux', files: linuxFiles }
-  ] satisfies { key: Platform; name: string; files: ReleaseFile[] }[];
+  $: platformCards = [
+    { key: 'mac', name: 'macOS', logo: osLogos.mac, files: macFiles },
+    { key: 'windows', name: 'Windows', logo: osLogos.windows, files: winFiles },
+    { key: 'linux', name: 'Linux', logo: osLogos.linux, files: linuxFiles }
+  ] satisfies { key: Platform; name: string; logo: string; files: ReleaseFile[] }[];
 
   const dateFmt = new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
@@ -43,8 +53,8 @@
   $: secondaryFile =
     os === 'mac' ? recoFiles.find((f) => f.arch === 'Intel') ?? null : null;
 
-  // One-line terminal installer, like pixen's. macOS/Linux use install.sh,
-  // Windows uses install.ps1. Both resolve the latest version at runtime.
+  // One-line terminal installer. macOS/Linux use install.sh, Windows
+  // install.ps1; both resolve the latest version at runtime.
   $: installCmd =
     os === 'windows'
       ? 'irm https://spaci.kentom.co.ke/install.ps1 | iex'
@@ -80,101 +90,143 @@
   path="/download"
 />
 
-<section class="page wrap">
-  <header class="head">
-    <span class="eyebrow">Download</span>
-    <h1>Get Spaci for {osLabel}</h1>
-    <p class="intro mono">v{data.latest.version} · Released {releaseDate}</p>
-  </header>
+<div class="page">
+  <section class="section top">
+    <div class="wrap">
+      <!-- Page header -->
+      <header class="head">
+        <span class="eyebrow"><LogoMotion size={15} anim="orbit" /> Download</span>
+        <h1>Get Spaci for {osLabel}.</h1>
+        <p class="subline mono">v{data.latest.version} · Released {releaseDate}</p>
+      </header>
 
-  <!-- Recommended download -->
-  <div class="reco">
-    <div class="reco-info">
-      <span class="reco-eyebrow">Recommended for you</span>
-      <span class="reco-name">Spaci for {osLabel}</span>
-      {#if primaryFile}
-        <span class="reco-meta mono">{primaryFile.arch} · {primaryFile.size}</span>
-      {/if}
-    </div>
-    <div class="reco-actions">
-      {#if primaryFile}
-        <a class="btn btn-primary" href={fileUrl(primaryFile.file)}>Download Spaci</a>
-      {/if}
-      {#if secondaryFile}
-        <a class="reco-alt" href={fileUrl(secondaryFile.file)}>Intel Mac instead</a>
-      {/if}
-    </div>
-  </div>
-
-  <div class="install">
-    <span class="install-label">Or install from your terminal</span>
-    <div class="cmd-chip">
-      <code class="mono">{installCmd}</code>
-      <button class="cmd-copy" on:click={copyCmd} aria-label="Copy install command">
-        {copied ? 'Copied' : 'Copy'}
-      </button>
-    </div>
-  </div>
-
-  <!-- All downloads -->
-  <div class="all">
-    <h2>All downloads</h2>
-    <div class="group-grid">
-      {#each groups as g}
-        <div class="group-card" class:active={g.key === os}>
-          <div class="group-head">
-            <span class="group-name">{g.name}</span>
-            {#if g.key === os}
-              <span class="flag">Detected</span>
+      <!-- Recommended download -->
+      <article class="reco">
+        <div class="reco-info">
+          <img class="reco-logo" src={osLogo} alt="" width="26" height="26" />
+          <div class="reco-text">
+            <span class="reco-eyebrow">Recommended for you</span>
+            <span class="reco-name">Spaci for {osLabel}</span>
+            {#if primaryFile}
+              <span class="reco-meta mono">{primaryFile.arch} · {primaryFile.size}</span>
             {/if}
           </div>
-          <div class="files">
-            {#each g.files as f}
-              <a class="file" href={fileUrl(f.file)}>
-                <span class="file-info">
-                  <span class="file-arch">{f.arch}</span>
-                  <span class="file-name mono">{f.file}</span>
-                </span>
-                <span class="file-right">
-                  <span class="file-size mono">{f.size}</span>
-                  <span class="file-dl">Download</span>
-                </span>
-              </a>
-            {/each}
-          </div>
         </div>
-      {/each}
-    </div>
-  </div>
+        <div class="reco-actions">
+          {#if primaryFile}
+            <a class="btn btn-primary reco-btn" href={fileUrl(primaryFile.file)}>
+              <Icon name="download" size={18} /> Download
+            </a>
+          {/if}
+          {#if secondaryFile}
+            <a class="reco-alt" href={fileUrl(secondaryFile.file)}>Intel Mac instead</a>
+          {/if}
+        </div>
+      </article>
 
-  <div class="footer-notes">
-    <p class="auto-note">
-      <strong>Updates automatically.</strong> Spaci checks for updates on its own and installs them
-      in the background, so you only download once.
-    </p>
-    <a class="changed-link" href="/changelog">See what changed →</a>
-  </div>
-</section>
+      <!-- Terminal install -->
+      <div class="brew">
+        <span class="brew-label">Or install from your terminal</span>
+        <div class="brew-chip">
+          <span class="brew-cmd-ic"><Icon name="command" size={16} /></span>
+          <code class="mono">{installCmd}</code>
+          <button class="brew-copy" on:click={copyCmd} aria-label="Copy install command">
+            <Icon name="copy" size={14} />{copied ? 'Copied' : 'Copy'}
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- All downloads -->
+  <section class="section all">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow"><LogoMotion size={15} anim="aperture" /> Every build</span>
+        <h2>All downloads.</h2>
+        <p class="sec-sub">
+          Pick the exact installer for your platform and architecture. Every build ships with
+          automatic updates.
+        </p>
+      </div>
+
+      <div class="dl-grid">
+        {#each platformCards as card}
+          <article class="dl-card" class:active={card.key === os}>
+            {#if card.key === os}<span class="dl-flag">Detected</span>{/if}
+            <div class="dl-head">
+              <img class="dl-logo" src={card.logo} alt="" width="26" height="26" />
+              <h3 class="dl-name">{card.name}</h3>
+            </div>
+            <div class="dl-files">
+              {#each card.files as f}
+                <a class="dl-file" href={fileUrl(f.file)}>
+                  <span class="dl-file-info">
+                    <span class="dl-arch">{f.arch}</span>
+                    <span class="dl-fname mono">{f.file}</span>
+                  </span>
+                  <span class="dl-file-right">
+                    <span class="dl-size mono">{f.size}</span>
+                    <span class="dl-go" aria-hidden="true"><Icon name="download" size={16} /></span>
+                  </span>
+                </a>
+              {/each}
+            </div>
+            <p class="dl-meta mono">v{data.latest.version} · {releaseDate}</p>
+          </article>
+        {/each}
+      </div>
+    </div>
+  </section>
+
+  <!-- Support the project -->
+  <SupportCta />
+
+  <!-- Footer note -->
+  <section class="section foot">
+    <div class="wrap">
+      <div class="foot-card">
+        <p class="foot-note">
+          <strong>Updates automatically.</strong> Spaci checks for updates on its own and installs
+          them in the background, so you only download once.
+        </p>
+        <a class="foot-link" href="/changelog">See what changed <Icon name="arrow" size={15} /></a>
+      </div>
+    </div>
+  </section>
+</div>
 
 <style>
-  .page {
-    padding-top: 72px;
-    padding-bottom: 24px;
+  /* Pull the first section up under the transparent nav, matching the home page. */
+  .top {
+    padding-top: 132px;
+    padding-bottom: 0;
   }
+  @media (max-width: 720px) {
+    .top {
+      padding-top: 108px;
+    }
+  }
+
+  /* ── Page header ── */
   .head {
+    max-width: 680px;
     margin-bottom: 40px;
+  }
+  .head .eyebrow :global(.lm) {
+    color: var(--accent-fg);
   }
   .head h1 {
     margin-top: 16px;
-    font-size: clamp(34px, 5vw, 52px);
+    font-size: clamp(34px, 5vw, 56px);
   }
-  .intro {
+  .subline {
     margin-top: 16px;
     font-size: 14px;
     color: var(--muted);
   }
 
-  /* Recommended */
+  /* ── Recommended (accent ring) ── */
   .reco {
     display: flex;
     align-items: center;
@@ -184,24 +236,39 @@
     background: var(--paper-2);
     border: 1px solid var(--accent);
     box-shadow: 0 0 0 1px var(--accent);
-    border-radius: var(--radius);
-    padding: 28px;
+    border-radius: var(--radius-lg);
+    padding: 30px;
   }
   .reco-info {
     display: flex;
+    align-items: center;
+    gap: 18px;
+    min-width: 0;
+  }
+  .reco-logo {
+    width: 26px;
+    height: 26px;
+    object-fit: contain;
+    display: block;
+    flex: none;
+  }
+  .reco-text {
+    display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 5px;
+    min-width: 0;
   }
   .reco-eyebrow {
-    font-size: 12px;
+    font-family: var(--mono);
+    font-size: 11.5px;
     font-weight: 500;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--accent);
+    color: var(--accent-fg);
   }
   .reco-name {
     font-size: 22px;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: -0.02em;
   }
   .reco-meta {
@@ -211,185 +278,271 @@
   .reco-actions {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 18px;
     flex-wrap: wrap;
+    flex: none;
   }
   .reco-alt {
     font-size: 14px;
-    color: var(--accent);
-    font-weight: 500;
+    color: var(--accent-fg);
+    font-weight: 600;
+    transition: color 0.15s ease;
+  }
+  .reco-alt:hover {
+    color: var(--ink);
   }
 
-  /* Terminal install */
-  .install {
-    margin-top: 22px;
+  /* ── Terminal install chip (mirrors the home page .brew) ── */
+  .brew {
+    margin-top: 26px;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 12px;
   }
-  .install-label {
+  .brew-label {
     font-size: 13px;
-    color: var(--muted);
+    color: var(--muted-2);
   }
-  .cmd-chip {
+  .brew-chip {
     display: inline-flex;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
     max-width: 100%;
-    padding: 8px 8px 8px 18px;
+    padding: 8px 8px 8px 16px;
     background: var(--paper-2);
     border: 1px solid var(--line);
-    border-radius: 999px;
+    border-radius: 12px;
   }
-  .cmd-chip code {
+  .brew-cmd-ic {
+    color: var(--accent-fg);
+    display: inline-flex;
+  }
+  .brew-chip code {
     font-size: 13.5px;
     color: var(--ink);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .cmd-copy {
+  .brew-copy {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
     border: 1px solid var(--line-2);
     background: transparent;
-    border-radius: 999px;
-    padding: 6px 14px;
+    border-radius: 9px;
+    padding: 7px 14px;
     font-size: 13px;
+    font-weight: 600;
     color: var(--ink);
     flex: none;
-    transition: border-color 0.15s ease;
+    transition: border-color 0.15s ease, background 0.15s ease;
   }
-  .cmd-copy:hover {
-    border-color: var(--ink);
+  .brew-copy:hover {
+    border-color: var(--accent-fg);
+    background: var(--accent-soft);
   }
 
-  /* All downloads */
+  /* ── All downloads ── */
   .all {
-    margin-top: 56px;
+    padding-top: 80px;
+    padding-bottom: 80px;
   }
-  .all h2 {
-    font-size: clamp(24px, 3.4vw, 32px);
-    margin-bottom: 24px;
+  @media (max-width: 720px) {
+    .all {
+      padding-top: 60px;
+      padding-bottom: 60px;
+    }
   }
-  .group-grid {
+  .sec-head {
+    margin-bottom: 36px;
+    max-width: 680px;
+  }
+  .sec-head .eyebrow :global(.lm) {
+    color: var(--accent-fg);
+  }
+  .sec-head h2 {
+    margin-top: 16px;
+    font-size: clamp(28px, 4vw, 42px);
+  }
+  .sec-sub {
+    margin-top: 16px;
+    color: var(--muted);
+    font-size: 17px;
+    max-width: 600px;
+  }
+
+  .dl-grid {
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 16px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
   }
-  .group-card {
+  .dl-card {
+    position: relative;
     background: var(--paper-2);
     border: 1px solid var(--line);
     border-radius: var(--radius);
-    padding: 22px 24px;
+    padding: 26px;
+    display: flex;
+    flex-direction: column;
+    transition: border-color 0.18s ease;
   }
-  .group-card.active {
+  .dl-card:hover {
     border-color: var(--line-2);
   }
-  .group-head {
+  .dl-card.active {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+  .dl-flag {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--accent-fg);
+    background: var(--chip);
+    padding: 4px 9px;
+    border-radius: 999px;
+  }
+  .dl-head {
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-bottom: 14px;
   }
-  .group-name {
-    font-size: 18px;
-    font-weight: 600;
-    letter-spacing: -0.01em;
+  .dl-logo {
+    width: 26px;
+    height: 26px;
+    object-fit: contain;
+    display: block;
   }
-  .flag {
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--accent);
-    background: var(--chip);
-    padding: 3px 9px;
-    border-radius: 999px;
+  .dl-name {
+    font-size: 20px;
   }
-  .files {
+  .dl-files {
+    margin-top: 16px;
     display: flex;
     flex-direction: column;
     gap: 8px;
+    flex: 1;
   }
-  .file {
+  .dl-file {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
-    padding: 13px 14px;
+    gap: 14px;
+    padding: 11px 14px;
     border: 1px solid var(--line);
     border-radius: var(--radius-sm);
     transition: border-color 0.15s ease;
   }
-  .file:hover {
-    border-color: var(--accent);
+  .dl-file:hover {
+    border-color: var(--accent-fg);
   }
-  .file-info {
+  .dl-file-info {
     display: flex;
     flex-direction: column;
     gap: 3px;
     min-width: 0;
   }
-  .file-arch {
-    font-size: 15px;
+  .dl-arch {
+    font-size: 14px;
     font-weight: 500;
   }
-  .file-name {
-    font-size: 12px;
-    color: var(--muted);
+  .dl-fname {
+    font-size: 11.5px;
+    color: var(--muted-2);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .file-right {
+  .dl-file-right {
     display: flex;
     align-items: center;
-    gap: 18px;
+    gap: 14px;
     flex: none;
   }
-  .file-size {
+  .dl-size {
     font-size: 13px;
-    color: var(--muted);
+    color: var(--muted-2);
   }
-  .file-dl {
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--accent);
+  .dl-go {
+    display: inline-flex;
+    color: var(--muted-2);
+    transition: color 0.15s ease;
+  }
+  .dl-file:hover .dl-go {
+    color: var(--accent-fg);
+  }
+  .dl-meta {
+    margin-top: 16px;
+    font-size: 12px;
+    color: var(--muted-2);
   }
 
-  /* Footer notes */
-  .footer-notes {
-    margin-top: 48px;
-    padding-top: 28px;
-    border-top: 1px solid var(--line);
+  /* ── Footer note ── */
+  .foot {
+    padding-top: 0;
+    padding-bottom: 96px;
+  }
+  @media (max-width: 720px) {
+    .foot {
+      padding-bottom: 64px;
+    }
+  }
+  .foot-card {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
+    gap: 20px;
     flex-wrap: wrap;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--paper-2);
+    padding: 26px 30px;
   }
-  .auto-note {
+  .foot-note {
     color: var(--muted);
     font-size: 15px;
     max-width: 560px;
   }
-  .auto-note strong {
+  .foot-note strong {
     color: var(--ink);
-    font-weight: 600;
+    font-weight: 700;
   }
-  .changed-link {
-    color: var(--accent);
+  .foot-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--accent-fg);
     font-size: 15px;
-    font-weight: 500;
+    font-weight: 600;
     white-space: nowrap;
+    transition: gap 0.15s ease;
+  }
+  .foot-link:hover {
+    gap: 9px;
   }
 
-  @media (max-width: 600px) {
-    .file-name {
-      max-width: 140px;
+  /* ── Responsive ── */
+  @media (max-width: 820px) {
+    .dl-grid {
+      grid-template-columns: 1fr;
     }
-    .file-dl {
-      display: none;
+  }
+  @media (max-width: 600px) {
+    .reco {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+    .reco-actions {
+      width: 100%;
+    }
+    .reco-btn {
+      width: 100%;
     }
   }
 </style>

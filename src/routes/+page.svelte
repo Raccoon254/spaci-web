@@ -1,7 +1,9 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { downloadsFor, fileUrl, type Platform, type ReleaseFile } from '$lib/releases';
-  import Mark from '$lib/components/Mark.svelte';
+  import Icon from '$lib/components/Icon.svelte';
+  import LogoMotion from '$lib/components/LogoMotion.svelte';
+  import SupportCta from '$lib/components/SupportCta.svelte';
   import Seo from '$lib/components/Seo.svelte';
   import type { PageData } from './$types';
 
@@ -9,36 +11,74 @@
 
   let os: Platform = 'mac';
   let copied = false;
+  let mounted = false;
 
-  const labels: Record<Platform, string> = {
-    mac: 'Mac',
-    windows: 'Windows',
-    linux: 'Linux'
+  const labels: Record<Platform, string> = { mac: 'Mac', windows: 'Windows', linux: 'Linux' };
+  const osLogos: Record<Platform, string> = {
+    mac: '/logos/macos.svg',
+    windows: '/logos/windows.svg',
+    linux: '/logos/linux.svg'
   };
-
   $: osLabel = labels[os];
+  $: osLogo = osLogos[os];
+
+  // The hero mark cycles through the named motion-system animations, fading
+  // cleanly between each one: Bloom → Elastic → Aperture → Orbit → Spiral.
+  const heroAnims = ['bloom', 'elastic', 'aperture', 'orbit', 'spiral'] as const;
+  let heroIdx = 0;
+  let heroSwapping = false;
+  $: heroAnim = heroAnims[heroIdx];
 
   $: macFiles = downloadsFor('mac', data.latest);
   $: winFiles = downloadsFor('windows', data.latest);
   $: linuxFiles = downloadsFor('linux', data.latest);
 
+  // OS logos are the actual brand marks from svgl.app (static/logos).
   $: platformCards = [
-    { key: 'mac', name: 'macOS', files: macFiles },
-    { key: 'windows', name: 'Windows', files: winFiles },
-    { key: 'linux', name: 'Linux', files: linuxFiles }
-  ] satisfies { key: Platform; name: string; files: ReleaseFile[] }[];
+    { key: 'mac', name: 'macOS', logo: '/logos/macos.svg', files: macFiles },
+    { key: 'windows', name: 'Windows', logo: '/logos/windows.svg', files: winFiles },
+    { key: 'linux', name: 'Linux', logo: '/logos/linux.svg', files: linuxFiles }
+  ] satisfies { key: Platform; name: string; logo: string; files: ReleaseFile[] }[];
 
-  const dateFmt = new Intl.DateTimeFormat('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
+  const dateFmt = new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   $: releaseDate = dateFmt.format(new Date(data.latest.date));
 
-  const scanRows = [
-    { name: 'node_modules/', size: '1.42 GB' },
-    { name: '.next/cache/', size: '318 MB' },
-    { name: 'build/', size: '206 MB' }
+  $: installCmd =
+    os === 'windows'
+      ? 'irm https://spaci.kentom.co.ke/install.ps1 | iex'
+      : 'curl -fsSL https://spaci.kentom.co.ke/install.sh | bash';
+
+  // Shared storage model for the disk-breakdown section. Illustrative numbers
+  // for a 512 GB disk that is 64% used.
+  const diskTotal = 512;
+  const segments = [
+    { label: 'Coding', size: 86, color: '#5e93dd', note: 'node_modules, build, caches' },
+    { label: 'Media', size: 74, color: '#e6b85c', note: 'photos, video, audio' },
+    { label: 'Apps', size: 58, color: '#e8836f', note: 'installed applications' },
+    { label: 'Documents', size: 46, color: '#4fcb93', note: 'files and downloads' },
+    { label: 'System', size: 64, color: '#8b867f', note: 'macOS and data' },
+    { label: 'Free', size: 184, color: 'rgba(140,140,140,0.20)', note: 'available space' }
+  ];
+  const usedGB = segments.filter((s) => s.label !== 'Free').reduce((a, s) => a + s.size, 0);
+  const usedPct = Math.round((usedGB / diskTotal) * 100);
+  const pct = (gb: number) => (gb / diskTotal) * 100;
+  const gbText = (gb: number) => (gb >= 1000 ? (gb / 1000).toFixed(2) + ' TB' : gb + ' GB');
+
+  const artifacts = [
+    'node_modules', '.next', 'target', 'dist', 'build', '__pycache__',
+    '.gradle', 'Pods', '.venv', 'vendor', '.turbo', 'DerivedData'
+  ];
+
+  const features = [
+    { icon: 'broom', title: 'One-click cleanup', body: 'Pick what to remove and Spaci clears node_modules, build output and caches in seconds. No terminal, no rm -rf.' },
+    { icon: 'detect', title: 'Smart detection', body: 'Spaci recognises project types across your machine automatically, so it knows what is safe to clear and what to leave alone.' },
+    { icon: 'shield', title: 'Safe by design', body: 'Every action previews first, and reversible cleanups stay separate from permanent deletes. You stay in control.' }
+  ];
+
+  const steps = [
+    { n: '01', title: 'Scan', body: 'One smart scan sweeps your projects and system caches, sizing everything in the background.' },
+    { n: '02', title: 'Review', body: 'Recommendations rank what is worth clearing, with a preview of every folder before it goes.' },
+    { n: '03', title: 'Reclaim', body: 'Clean in one click. Reversible actions undo from history; permanent ones are clearly flagged.' }
   ];
 
   function detectOs(): Platform {
@@ -50,11 +90,6 @@
     return 'mac';
   }
 
-  $: installCmd =
-    os === 'windows'
-      ? 'irm https://spaci.kentom.co.ke/install.ps1 | iex'
-      : 'curl -fsSL https://spaci.kentom.co.ke/install.sh | bash';
-
   async function copyCmd() {
     try {
       await navigator.clipboard.writeText(installCmd);
@@ -65,8 +100,71 @@
     }
   }
 
+  // Reveal-on-scroll, gated behind .js so content is never hidden without JS.
+  function inview(node: HTMLElement) {
+    const obs = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) {
+          node.classList.add('in');
+          obs.unobserve(node);
+        }
+      },
+      { threshold: 0.12, rootMargin: '0px 0px -8% 0px' }
+    );
+    obs.observe(node);
+    return { destroy: () => obs.disconnect() };
+  }
+
+  // Subtle scroll parallax: writes a --py offset onto the node as it moves
+  // through the viewport, which its inner image translates by.
+  function parallax(node: HTMLElement, speed = 0.05) {
+    let ticking = false;
+    const update = () => {
+      ticking = false;
+      const rect = node.getBoundingClientRect();
+      const vh = window.innerHeight || 1;
+      // reversed direction, clamped so the scaled image never reveals an edge
+      const raw = (rect.top + rect.height / 2 - vh / 2) * speed;
+      const off = Math.max(-26, Math.min(26, raw));
+      node.style.setProperty('--py', `${off.toFixed(1)}px`);
+    };
+    const onScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(update);
+      }
+    };
+    update();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    return {
+      destroy() {
+        window.removeEventListener('scroll', onScroll);
+        window.removeEventListener('resize', onScroll);
+      }
+    };
+  }
+
   onMount(() => {
     os = detectOs();
+    mounted = true;
+
+    // Cycle the hero animation, pausing if the user prefers reduced motion.
+    const reduce =
+      typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) return;
+    let swapTimer: ReturnType<typeof setTimeout>;
+    const cycle = setInterval(() => {
+      heroSwapping = true; // fade out
+      swapTimer = setTimeout(() => {
+        heroIdx = (heroIdx + 1) % heroAnims.length;
+        heroSwapping = false; // fade back in with the next animation
+      }, 520);
+    }, 6200);
+    return () => {
+      clearInterval(cycle);
+      clearTimeout(swapTimer);
+    };
   });
 </script>
 
@@ -76,404 +174,515 @@
   path="/"
 />
 
-<!-- Hero -->
-<section class="hero">
-  <div class="wrap hero-grid">
-    <div class="hero-copy">
-      <span class="eyebrow"><Mark size={15} /> Dev disk cleaner</span>
-      <h1>Take back your disk from <span class="hl">node_modules.</span></h1>
-      <p class="lede">
-        spaci finds and clears <code>build/</code>, <code>node_modules</code>, <code>.next</code>,
-        <code>dist</code> and other regenerable folders, safely, in one click.
+<div class="page" class:js={mounted}>
+  <!-- ══════════ HERO ══════════ -->
+  <section class="hero">
+    <div class="hero-bg" aria-hidden="true"></div>
+    <div class="wrap hero-inner">
+      <span class="hero-logo" class:swapping={heroSwapping}><LogoMotion size={108} anim={heroAnim} /></span>
+      <span class="eyebrow r" use:inview>Developer disk cleaner</span>
+      <h1 class="r" use:inview>Take back your disk<br />from <span class="hl">node_modules.</span></h1>
+      <p class="lede r" use:inview>
+        Spaci finds the build artifacts and caches quietly eating your SSD, then clears them in one
+        click. Safe by design.
       </p>
-
-      <div class="cta-row">
-        <a class="btn btn-primary" href="/download"><Mark size={16} /> Download for {osLabel}</a>
-        <a
-          class="btn btn-ghost"
-          href="https://github.com/Raccoon254/spaci"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <svg class="gh-icon" width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path
-              d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"
-            />
-          </svg>
-          Star on GitHub</a
-        >
+      <div class="cta-row r" use:inview>
+        <a class="btn btn-primary" href="/download"><img class="btn-os" src={osLogo} alt="" width="18" height="18" /> Download for {osLabel}</a>
+        <a class="btn btn-ghost" href="https://github.com/Raccoon254/spaci" target="_blank" rel="noopener noreferrer">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+          Star on GitHub
+        </a>
       </div>
-      <p class="cta-note mono">
-        Free &amp; open source · <a href="/#features">see it in motion →</a>
-      </p>
+      <p class="cta-note mono r" use:inview>Free &amp; open source · macOS, Windows &amp; Linux</p>
     </div>
+  </section>
 
-    <!-- Mock app window -->
-    <div class="mock" aria-hidden="true">
-      <div class="mock-bar">
-        <span class="lights">
-          <span class="light"></span>
-          <span class="light"></span>
-          <span class="light"></span>
-        </span>
-        <span class="mock-title">
-          <span class="accent-mark"><Mark size={17} /></span>
-          spaci
-        </span>
-        <button class="mock-clean">Clean now</button>
+  <!-- artifact marquee -->
+  <div class="marquee r" use:inview aria-hidden="true">
+    <div class="marquee-track">
+      {#each [...artifacts, ...artifacts] as a}
+        <span class="chip mono">{a}</span>
+      {/each}
+    </div>
+  </div>
+
+  <!-- ══════════ APP SHOWCASE ══════════ -->
+  <section class="section showcase">
+    <div class="wrap">
+      <div class="sec-head r" use:inview>
+        <span class="eyebrow"><LogoMotion size={15} anim="chase" /> A look inside</span>
+        <h2>This is how Spaci looks.</h2>
+        <p class="sec-sub">
+          Smart scan, storage breakdown, recommendations and one-click cleanup, in one calm window.
+        </p>
+      </div>
+    </div>
+    <div class="shot r" use:inview>
+      <div class="shot-frame" use:parallax>
+        <img
+          src="/spaci-app.webp"
+          alt="The Spaci desktop app showing the Smart Scan screen"
+          width="2584"
+          height="1784"
+          loading="lazy"
+        />
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ STORAGE BREAKDOWN ══════════ -->
+  <section id="storage" class="section">
+    <div class="wrap">
+      <div class="sec-head r" use:inview>
+        <span class="eyebrow"><LogoMotion size={15} anim="aperture" /> Disk breakdown</span>
+        <h2>See exactly where your disk went.</h2>
+        <p class="sec-sub">
+          One scan classifies your whole drive into coding, media, apps, documents and system, so
+          the space worth reclaiming stops hiding inside a vague "Other".
+        </p>
       </div>
 
-      <div class="mock-body">
-        <div class="scan">
-          <span class="accent-mark"><Mark size={34} anim="orbit" /></span>
-          <div class="scan-text">
-            <span class="scan-label">Scanning project…</span>
-            <span class="scan-sub mono">1,204 folders · 18,902 files</span>
-          </div>
+      <div class="cap-card r" use:inview>
+        <div class="cap-top">
+          <span class="cap-label"><Icon name="chart" size={18} /> Macintosh HD</span>
+          <span class="cap-num mono">{gbText(usedGB)} used of {gbText(diskTotal)}</span>
         </div>
+        <div class="cap r" use:inview>
+          {#each segments as s, i}
+            <span class="seg" style="flex-basis:{pct(s.size)}%;background:{s.color};--i:{i}"></span>
+          {/each}
+        </div>
+        <div class="legend">
+          {#each segments as s}
+            <div class="leg">
+              <span class="leg-dot" style="background:{s.color}"></span>
+              <span class="leg-name">{s.label}</span>
+              <span class="leg-size mono">{gbText(s.size)}</span>
+              <span class="leg-note">{s.note}</span>
+            </div>
+          {/each}
+        </div>
+      </div>
+    </div>
+  </section>
 
-        <ul class="rows">
-          {#each scanRows as row}
-            <li class="row">
-              <span class="row-sq"></span>
-              <span class="row-name mono">{row.name}</span>
-              <span class="row-size mono">{row.size}</span>
-            </li>
+  <!-- ══════════ FEATURES ══════════ -->
+  <section id="features" class="section">
+    <div class="wrap">
+      <div class="sec-head r" use:inview>
+        <span class="eyebrow"><LogoMotion size={15} anim="bloom" /> Why Spaci</span>
+        <h2>Built to clean the stuff IDEs leave behind.</h2>
+      </div>
+      <div class="feature-grid stagger r" use:inview>
+        {#each features as f}
+          <article class="card">
+            <span class="card-ic"><Icon name={f.icon} size={24} /></span>
+            <h3>{f.title}</h3>
+            <p>{f.body}</p>
+          </article>
+        {/each}
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ HOW IT WORKS ══════════ -->
+  <section class="section">
+    <div class="wrap">
+      <div class="sec-head r" use:inview>
+        <span class="eyebrow"><LogoMotion size={15} anim="elastic" /> How it works</span>
+        <h2>Three steps from cluttered to clean.</h2>
+      </div>
+      <div class="steps stagger r" use:inview>
+        {#each steps as s}
+          <div class="step">
+            <span class="step-n mono">{s.n}</span>
+            <h3>{s.title}</h3>
+            <p>{s.body}</p>
+          </div>
+        {/each}
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ DOWNLOAD ══════════ -->
+  <section id="download" class="section">
+    <div class="wrap">
+      <div class="sec-head r" use:inview>
+        <span class="eyebrow"><LogoMotion size={15} anim="orbit" /> Get Spaci</span>
+        <h2>Download for your platform.</h2>
+      </div>
+
+      <div class="dl-grid stagger r" use:inview>
+        {#each platformCards as card}
+          <article class="dl-card" class:active={card.key === os}>
+            {#if card.key === os}<span class="dl-flag">Detected</span>{/if}
+            <div class="dl-head">
+              <img class="dl-logo" src={card.logo} alt="" width="26" height="26" />
+              <h3 class="dl-name">{card.name}</h3>
+            </div>
+            <div class="dl-files">
+              {#each card.files as f}
+                <a class="dl-file" href={fileUrl(f.file)}>
+                  <span class="dl-arch">{f.arch}</span>
+                  <span class="dl-size mono">{f.size}</span>
+                </a>
+              {/each}
+            </div>
+            <a class="btn btn-primary dl-btn" href={fileUrl(card.files[0].file)}>Download</a>
+            <p class="dl-meta mono">v{data.latest.version} · {releaseDate}</p>
+          </article>
+        {/each}
+      </div>
+
+      <div class="brew r" use:inview>
+        <span class="brew-label">Or install from your terminal</span>
+        <div class="brew-chip">
+          <span class="brew-cmd-ic"><Icon name="command" size={16} /></span>
+          <code class="mono">{installCmd}</code>
+          <button class="brew-copy" on:click={copyCmd} aria-label="Copy install command">
+            <Icon name="copy" size={14} />{copied ? 'Copied' : 'Copy'}
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ WHAT'S NEW ══════════ -->
+  <section class="section">
+    <div class="wrap">
+      <div class="teaser-head r" use:inview>
+        <h2><span class="th-mark"><LogoMotion size={20} anim="chase" /></span> What's new</h2>
+        <a class="teaser-link" href="/changelog">Full changelog <Icon name="arrow" size={15} /></a>
+      </div>
+      <div class="teaser-card r" use:inview>
+        <div class="teaser-top">
+          <span class="ver mono">v{data.latest.version}</span>
+          <span class="teaser-date mono">{releaseDate}</span>
+          <span class="tag" class:green={data.latest.major}>{data.latest.tag}</span>
+        </div>
+        <p class="teaser-summary">{data.latest.summary}</p>
+        <ul class="teaser-list">
+          {#each data.latest.added.slice(0, 4) as item}
+            <li>{item}</li>
           {/each}
         </ul>
       </div>
+    </div>
+  </section>
 
-      <div class="mock-foot">
-        <span class="foot-left">
-          <span class="foot-mark"><Mark size={18} /></span>
-          2.13 GB reclaimable
-        </span>
-        <span class="foot-right mono">disk 64% free</span>
+  <!-- ══════════ SUPPORT ══════════ -->
+  <SupportCta />
+
+  <!-- ══════════ FINAL CTA ══════════ -->
+  <section class="section cta-band">
+    <div class="wrap cta-inner r" use:inview>
+      <span class="cta-mark"><LogoMotion size={60} anim="spiral" /></span>
+      <h2>Reclaim your disk today.</h2>
+      <p>Free, open source, and it updates itself. Your SSD will thank you.</p>
+      <div class="cta-actions">
+        <a class="btn btn-primary" href="/download"><img class="btn-os" src={osLogo} alt="" width="18" height="18" /> Download for {osLabel}</a>
+        <a class="btn btn-ghost" href="/changelog">What's new</a>
       </div>
     </div>
-  </div>
-</section>
-
-<!-- Features -->
-<section id="features" class="section features">
-  <div class="wrap">
-    <div class="sec-head">
-      <span class="eyebrow">Why Spaci</span>
-      <h2>Built to clean the stuff IDEs leave behind</h2>
-    </div>
-
-    <div class="feature-grid">
-      <article class="card">
-        <span class="accent-mark"><Mark size={22} /></span>
-        <h3>One-click cleanup</h3>
-        <p>
-          Select what to remove and Spaci clears node_modules, build output and dependency caches in
-          seconds. No terminal, no guesswork.
-        </p>
-      </article>
-      <article class="card">
-        <span class="accent-mark"><Mark size={22} /></span>
-        <h3>Smart detection</h3>
-        <p>
-          Spaci scans your machine and recognises project types automatically, so it always knows
-          what is safe to clear and what to leave alone.
-        </p>
-      </article>
-      <article class="card">
-        <span class="accent-mark"><Mark size={22} /></span>
-        <h3>Safe by design</h3>
-        <p>
-          Every action shows a preview first, and reversible actions are kept separate from
-          permanent ones. You are always in control.
-        </p>
-      </article>
-    </div>
-  </div>
-</section>
-
-<!-- Download -->
-<section class="section download">
-  <div class="wrap">
-    <div class="sec-head">
-      <span class="eyebrow">Get Spaci</span>
-      <h2>Download for your platform</h2>
-    </div>
-
-    <div class="dl-grid">
-      {#each platformCards as card}
-        <article class="dl-card" class:active={card.key === os}>
-          {#if card.key === os}
-            <span class="dl-flag">Detected</span>
-          {/if}
-          <h3 class="dl-name">{card.name}</h3>
-          <div class="dl-files">
-            {#each card.files as f}
-              <a class="dl-file" href={fileUrl(f.file)}>
-                <span class="dl-arch">{f.arch}</span>
-                <span class="dl-size mono">{f.size}</span>
-              </a>
-            {/each}
-          </div>
-          <a class="btn btn-primary dl-btn" href={fileUrl(card.files[0].file)}>Download</a>
-          <p class="dl-meta mono">v{data.latest.version} · {releaseDate}</p>
-        </article>
-      {/each}
-    </div>
-
-    <div class="brew">
-      <span class="brew-label">Or install from your terminal</span>
-      <div class="brew-chip">
-        <code class="mono">{installCmd}</code>
-        <button class="brew-copy" on:click={copyCmd} aria-label="Copy install command">
-          {copied ? 'Copied' : 'Copy'}
-        </button>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Changelog teaser -->
-<section class="section teaser">
-  <div class="wrap">
-    <div class="teaser-head">
-      <h2>What's new</h2>
-      <a class="teaser-link" href="/changelog">See full changelog →</a>
-    </div>
-
-    <div class="teaser-card">
-      <div class="teaser-top">
-        <span class="ver mono">v{data.latest.version}</span>
-        <span class="teaser-date mono">{releaseDate}</span>
-        <span class="tag" class:green={data.latest.major}>{data.latest.tag}</span>
-      </div>
-      <p class="teaser-summary">{data.latest.summary}</p>
-      <ul class="teaser-list">
-        {#each data.latest.added.slice(0, 4) as item}
-          <li>{item}</li>
-        {/each}
-      </ul>
-    </div>
-  </div>
-</section>
+  </section>
+</div>
 
 <style>
-  /* Hero */
+  /* ══ HERO ══
+     (Scroll-reveal rules for .r / .stagger / .cap .seg live globally in
+     app.css under .page.js so Svelte never prunes the JS-added .in class.) */
   .hero {
-    padding-top: 80px;
-    padding-bottom: 40px;
-  }
-  .hero-grid {
-    display: grid;
-    grid-template-columns: 1.05fr 0.95fr;
-    gap: 56px;
+    position: relative;
+    min-height: 94vh;
+    display: flex;
     align-items: center;
+    justify-content: center;
+    text-align: center;
+    /* slide up under the transparent nav so the hero image sits behind it */
+    margin-top: -65px;
+    padding: 140px 0 64px;
+    overflow: hidden;
   }
-  .hero-copy h1 {
-    margin-top: 22px;
-    font-size: clamp(40px, 6vw, 66px);
-    font-weight: 700;
-    letter-spacing: -0.03em;
-    line-height: 1.02;
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background: url('/hero-bg.svg') center / cover no-repeat;
   }
-  .hero-copy h1 .hl {
-    color: var(--accent);
+  /* fade the image cleanly into the page background at the edges */
+  .hero-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(32, 32, 32, 0.35) 0%, transparent 30%, transparent 60%, var(--paper) 100%);
+  }
+  .hero-inner {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 760px;
+  }
+  .hero-logo {
+    color: #ffffff;
+    filter: drop-shadow(0 8px 26px rgba(0, 0, 0, 0.55));
+    margin-bottom: 26px;
+    transition: opacity 0.52s ease, transform 0.52s ease;
+  }
+  .hero-logo.swapping {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  .hero-inner .eyebrow {
+    margin-bottom: 18px;
+  }
+  .hero-inner h1 {
+    font-size: clamp(40px, 6.2vw, 70px);
+    line-height: 1.0;
+  }
+  .hero-inner h1 .hl {
+    color: var(--accent-fg);
   }
   .lede {
     margin-top: 22px;
-    max-width: 520px;
+    max-width: 500px;
     color: var(--muted);
     font-size: 18px;
-  }
-  .lede code {
-    font-family: var(--mono);
-    font-size: 0.9em;
-    color: var(--ink);
   }
   .cta-row {
     margin-top: 32px;
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
+    justify-content: center;
   }
   .cta-note {
     margin-top: 18px;
-    font-size: 13px;
-    color: var(--muted);
-  }
-  .cta-note a {
-    color: var(--accent);
-    text-decoration: underline;
-    text-underline-offset: 2px;
-  }
-
-  /* Mock window */
-  .mock {
-    background: #ffffff;
-    border: 1px solid var(--line);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    box-shadow: 0 26px 60px -30px rgba(32, 32, 32, 0.22);
-  }
-  .mock-bar {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 15px 18px;
-  }
-  .lights {
-    display: inline-flex;
-    gap: 7px;
-  }
-  .light {
-    width: 11px;
-    height: 11px;
-    border-radius: 999px;
-    background: #ddd5cb;
-  }
-  .mock-title {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--ink);
-  }
-  .mock-clean {
-    margin-left: auto;
-    background: var(--accent);
-    color: #fff;
-    border: none;
-    height: 32px;
-    padding: 0 16px;
-    border-radius: 9px;
-    font-size: 13px;
-    font-weight: 600;
-  }
-  .mock-body {
-    padding: 18px 18px 16px;
-  }
-  .scan {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    color: var(--accent);
-    padding: 8px 6px 18px;
-  }
-  .scan-text {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-  }
-  .scan-label {
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--ink);
-  }
-  .scan-sub {
     font-size: 12.5px;
-    color: var(--muted);
-  }
-  .rows {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-  .row {
-    display: flex;
-    align-items: center;
-    gap: 13px;
-    padding: 12px 8px;
-  }
-  .row + .row {
-    border-top: 1px solid var(--line);
-  }
-  .row-sq {
-    width: 22px;
-    height: 22px;
-    border-radius: 6px;
-    background: var(--accent);
-    flex: none;
-  }
-  .row-name {
-    font-size: 14px;
-    color: var(--ink);
-  }
-  .row-size {
-    margin-left: auto;
-    font-size: 13px;
-    color: var(--muted);
-    flex: none;
+    color: var(--muted-2);
   }
 
-  /* Mock footer: reclaimable summary */
-  .mock-foot {
+  /* ── Marquee ── */
+  .marquee {
+    margin: 8px 0 8px;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+    overflow: hidden;
+  }
+  .marquee-track {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
     gap: 12px;
-    padding: 16px 20px;
-    background: #f1ece5;
-    border-top: 1px solid var(--line);
+    width: max-content;
+    animation: marquee 34s linear infinite;
   }
-  .foot-left {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--ink);
+  @keyframes marquee {
+    to {
+      transform: translateX(-50%);
+    }
   }
-  .foot-mark {
-    display: inline-flex;
-    color: var(--green);
-  }
-  .foot-right {
+  .chip {
     font-size: 13px;
-    color: var(--green);
+    color: var(--muted);
+    border: 1px solid var(--line);
+    background: var(--paper-2);
+    padding: 7px 14px;
+    border-radius: 999px;
+    white-space: nowrap;
   }
 
-  /* Section heads */
+  /* ── App showcase (parallax screenshot) ── */
+  .showcase .sec-head {
+    margin-bottom: 30px;
+  }
+  .shot {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 28px;
+  }
+  .shot-frame {
+    position: relative;
+    border-radius: 20px;
+    overflow: hidden;
+    aspect-ratio: 2584 / 1784;
+  }
+  .shot-frame img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: translateY(var(--py, 0px)) scale(1.12);
+    will-change: transform;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .shot-frame img {
+      transform: scale(1.12);
+    }
+  }
+
+  /* ── Section heads ── */
+  .section {
+    padding: 92px 0;
+  }
+  @media (max-width: 720px) {
+    .section {
+      padding: 60px 0;
+    }
+  }
   .sec-head {
     margin-bottom: 40px;
+    max-width: 680px;
+  }
+  .sec-head .eyebrow :global(.lm) {
+    color: var(--accent-fg);
   }
   .sec-head h2 {
     margin-top: 16px;
-    font-size: clamp(28px, 4vw, 40px);
-    max-width: 640px;
+    font-size: clamp(28px, 4vw, 42px);
+  }
+  .sec-sub {
+    margin-top: 16px;
+    color: var(--muted);
+    font-size: 17px;
+    max-width: 600px;
   }
 
-  /* Features */
+  /* ── Storage breakdown ── */
+  .cap-card {
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 30px;
+  }
+  .cap-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .cap-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .cap-num {
+    font-size: 13.5px;
+    color: var(--muted-2);
+  }
+  .cap {
+    height: 26px;
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    gap: 3px;
+    background: var(--track);
+  }
+  .seg {
+    height: 100%;
+    border-radius: 4px;
+    transform-origin: left;
+  }
+  .legend {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px 28px;
+    margin-top: 26px;
+  }
+  .leg {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 9px;
+  }
+  .leg-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+  }
+  .leg-name {
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .leg-size {
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .leg-note {
+    grid-column: 2 / -1;
+    font-size: 12px;
+    color: var(--muted-2);
+  }
+
+  /* ── Features ── */
   .feature-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
+    gap: 18px;
   }
   .card {
     background: var(--paper-2);
     border: 1px solid var(--line);
     border-radius: var(--radius);
     padding: 28px;
-    color: var(--accent);
+    transition: border-color 0.18s ease;
+  }
+  .card:hover {
+    border-color: var(--line-2);
+  }
+  .card-ic {
+    display: grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 13px;
+    background: var(--accent-soft);
+    color: var(--accent-fg);
   }
   .card h3 {
-    margin-top: 18px;
+    margin-top: 20px;
     font-size: 19px;
-    color: var(--ink);
   }
   .card p {
     margin-top: 10px;
     color: var(--muted);
-    font-size: 15px;
+    font-size: 14.5px;
   }
 
-  /* Download */
+  /* ── How it works ── */
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+  }
+  .step {
+    padding: 26px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--paper-2);
+  }
+  .step-n {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--accent-fg);
+    letter-spacing: 0.1em;
+  }
+  .step h3 {
+    margin-top: 12px;
+    font-size: 20px;
+  }
+  .step p {
+    margin-top: 9px;
+    color: var(--muted);
+    font-size: 14.5px;
+  }
+
+  /* ── Download ── */
   .dl-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
+    gap: 18px;
   }
   .dl-card {
     position: relative;
@@ -483,6 +692,10 @@
     padding: 26px;
     display: flex;
     flex-direction: column;
+    transition: border-color 0.18s ease;
+  }
+  .dl-card:hover {
+    border-color: var(--line-2);
   }
   .dl-card.active {
     border-color: var(--accent);
@@ -492,14 +705,25 @@
     position: absolute;
     top: 18px;
     right: 18px;
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.04em;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
-    color: var(--accent);
+    color: var(--accent-fg);
     background: var(--chip);
     padding: 4px 9px;
     border-radius: 999px;
+  }
+  .dl-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .dl-logo {
+    width: 26px;
+    height: 26px;
+    object-fit: contain;
+    display: block;
   }
   .dl-name {
     font-size: 20px;
@@ -514,29 +738,29 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 12px;
+    padding: 11px 13px;
     border: 1px solid var(--line);
     border-radius: var(--radius-sm);
     transition: border-color 0.15s ease;
   }
   .dl-file:hover {
-    border-color: var(--line-2);
+    border-color: var(--accent-fg);
   }
   .dl-arch {
     font-size: 14px;
   }
   .dl-size {
     font-size: 13px;
-    color: var(--muted);
+    color: var(--muted-2);
   }
   .dl-btn {
     margin-top: 18px;
-    justify-content: center;
+    width: 100%;
   }
   .dl-meta {
     margin-top: 14px;
     font-size: 12px;
-    color: var(--muted);
+    color: var(--muted-2);
   }
 
   .brew {
@@ -548,58 +772,80 @@
   }
   .brew-label {
     font-size: 13px;
-    color: var(--muted);
+    color: var(--muted-2);
   }
   .brew-chip {
     display: inline-flex;
     align-items: center;
-    gap: 14px;
-    padding: 8px 8px 8px 18px;
+    gap: 12px;
+    max-width: 100%;
+    padding: 8px 8px 8px 16px;
     background: var(--paper-2);
     border: 1px solid var(--line);
-    border-radius: 999px;
+    border-radius: 12px;
+  }
+  .brew-cmd-ic {
+    color: var(--accent-fg);
+    display: inline-flex;
   }
   .brew-chip code {
-    font-size: 14px;
+    font-size: 13.5px;
     color: var(--ink);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .brew-copy {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
     border: 1px solid var(--line-2);
     background: transparent;
-    border-radius: 999px;
-    padding: 6px 14px;
+    border-radius: 9px;
+    padding: 7px 14px;
     font-size: 13px;
+    font-weight: 600;
     color: var(--ink);
-    transition:
-      border-color 0.15s ease,
-      background 0.15s ease;
+    flex: none;
+    transition: border-color 0.15s ease, background 0.15s ease;
   }
   .brew-copy:hover {
-    border-color: var(--ink);
+    border-color: var(--accent-fg);
+    background: var(--accent-soft);
   }
 
-  /* Teaser */
+  /* ── What's new ── */
   .teaser-head {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     justify-content: space-between;
     gap: 16px;
     margin-bottom: 24px;
   }
   .teaser-head h2 {
-    font-size: clamp(26px, 3.4vw, 34px);
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    font-size: clamp(26px, 3.4vw, 36px);
+  }
+  .th-mark {
+    color: var(--accent-fg);
+    display: inline-flex;
   }
   .teaser-link {
-    color: var(--accent);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--accent-fg);
     font-size: 15px;
-    font-weight: 500;
+    font-weight: 600;
     white-space: nowrap;
   }
   .teaser-card {
     background: var(--paper-2);
     border: 1px solid var(--line);
     border-radius: var(--radius);
-    padding: 28px;
+    padding: 30px;
   }
   .teaser-top {
     display: flex;
@@ -614,25 +860,25 @@
   }
   .teaser-date {
     font-size: 13px;
-    color: var(--muted);
+    color: var(--muted-2);
   }
   .teaser-summary {
-    margin-top: 14px;
+    margin-top: 16px;
     font-size: 17px;
   }
   .teaser-list {
     margin: 16px 0 0;
     padding: 0;
     list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 9px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 26px;
   }
   .teaser-list li {
     position: relative;
     padding-left: 20px;
     color: var(--muted);
-    font-size: 15px;
+    font-size: 14.5px;
   }
   .teaser-list li::before {
     content: '';
@@ -642,23 +888,63 @@
     width: 6px;
     height: 6px;
     border-radius: 999px;
-    background: var(--accent);
+    background: var(--accent-fg);
   }
 
-  /* Responsive */
-  @media (max-width: 900px) {
-    .hero-grid {
-      grid-template-columns: 1fr;
-      gap: 40px;
-    }
+  /* ── Final CTA ── */
+  .cta-band {
+    text-align: center;
+  }
+  .cta-inner {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 60px 28px;
+    background: var(--paper-2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .cta-mark {
+    color: var(--accent-fg);
+    margin-bottom: 20px;
+  }
+  .cta-inner h2 {
+    font-size: clamp(30px, 4.5vw, 46px);
+  }
+  .cta-inner p {
+    margin-top: 14px;
+    color: var(--muted);
+    font-size: 17px;
+  }
+  .cta-actions {
+    margin-top: 28px;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .btn-os {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+    display: block;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 820px) {
     .feature-grid,
+    .steps,
     .dl-grid {
       grid-template-columns: 1fr;
     }
+    .legend {
+      grid-template-columns: 1fr 1fr;
+    }
   }
   @media (max-width: 600px) {
-    .hero {
-      padding-top: 56px;
+    .legend,
+    .teaser-list {
+      grid-template-columns: 1fr;
     }
     .teaser-head {
       flex-direction: column;

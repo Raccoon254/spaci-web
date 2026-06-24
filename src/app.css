@@ -1,26 +1,57 @@
 /* Spaci marketing site design tokens.
-   Light theme from the Spaci Landing design: cream paper, near-black ink,
-   royal blue accent. DM Sans for text, DM Mono for code / versions. */
+   Ported from the real Spaci desktop app (src/renderer/styles.css): a refined
+   dark UI on near-black #202020, warm cream ink, royal-blue accent with a
+   lighter accent-fg for text/icons on dark, a grain overlay and the app's
+   animation curves. The token NAMES match the previous light theme so the
+   changelog and download pages adopt the dark look with no per-page edits. */
 
 :root {
-  --paper: #f8f3f0;
-  --paper-2: #fffdfb;
-  --ink: #202020;
-  --muted: #5b5650;
+  /* surfaces */
+  --paper: #202020; /* page background (app --bg) */
+  --paper-2: #262626; /* card / panel (app --panel) */
+  --panel-2: #2d2d2d;
+  --panel-3: #363636;
+  --desk: #161616; /* deepest backdrop behind floating panels */
+
+  /* ink */
+  --ink: #f8f3f0; /* primary text (app --text) */
+  --muted: #b6b1ab; /* secondary text (app --text-2) */
+  --muted-2: #8b867f; /* tertiary (app --text-3) */
+  --faint: #615d57; /* quaternary (app --text-4) */
+
+  /* brand */
   --accent: #014baa;
-  --accent-ink: #ffffff;
-  --green: #1f8a5b;
-  --line: rgba(32, 32, 32, 0.1);
-  --line-2: rgba(32, 32, 32, 0.16);
-  --chip: rgba(1, 75, 170, 0.08);
+  --accent-hover: #0257c4;
+  --accent-fg: #5e93dd; /* accent that stays legible on dark */
+  --accent-soft: rgba(1, 75, 170, 0.18);
+  --accent-soft-2: rgba(1, 75, 170, 0.3);
+  --on-accent: #f8f3f0;
+
+  /* status */
+  --green: #4fcb93; /* success-fg, legible on dark */
+  --success: #34b27b;
+  --success-soft: rgba(52, 178, 123, 0.16);
+  --danger: #e8836f;
+  --danger-soft: rgba(214, 90, 69, 0.16);
+  --warn: #e6b85c;
+  --warn-soft: rgba(217, 164, 65, 0.16);
+
+  /* lines + tracks */
+  --line: #343434;
+  --line-2: #454545;
+  --track: rgba(140, 140, 140, 0.16);
+  --track-bright: rgba(150, 150, 150, 0.3);
+  --chip: rgba(1, 75, 170, 0.18);
 
   --radius: 18px;
   --radius-sm: 14px;
   --radius-lg: 24px;
-  --maxw: 1240px;
+  --maxw: 1200px;
 
   --font: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --mono: 'DM Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --mono: 'DM Mono', ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace;
+
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
 }
 
 * {
@@ -38,11 +69,9 @@ body {
   font-family: var(--font);
   font-size: 16px;
   line-height: 1.55;
+  letter-spacing: -0.1px;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  /* very subtle paper grain */
-  background-image: radial-gradient(rgba(32, 32, 32, 0.015) 1px, transparent 1px);
-  background-size: 4px 4px;
 }
 
 a {
@@ -59,14 +88,19 @@ button {
 h1,
 h2,
 h3 {
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  line-height: 1.08;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
   margin: 0;
 }
 
 p {
   margin: 0;
+}
+
+::selection {
+  background: var(--accent-soft-2);
+  color: var(--ink);
 }
 
 .wrap {
@@ -80,47 +114,49 @@ p {
   font-family: var(--mono);
 }
 
-/* The Spaci mark inherits currentColor, so this paints it the brand royal blue
-   wherever it should read as a logo on the light background. */
+/* The Spaci mark inherits currentColor; paint it the legible accent on dark. */
 .accent-mark {
   display: inline-flex;
-  color: var(--accent);
+  color: var(--accent-fg);
 }
 
 /* buttons */
 .btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 9px;
-  height: 46px;
-  padding: 0 22px;
-  border-radius: 999px;
+  height: 48px;
+  padding: 0 24px;
+  border-radius: 13px;
   border: 1px solid transparent;
-  font-weight: 500;
+  font-weight: 600;
   font-size: 15px;
   transition:
     transform 0.12s ease,
-    background 0.15s ease,
-    border-color 0.15s ease;
+    background 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease;
   white-space: nowrap;
 }
 .btn:active {
-  transform: translateY(1px);
+  transform: scale(0.975);
 }
 .btn-primary {
   background: var(--accent);
-  color: var(--accent-ink);
+  color: var(--on-accent);
 }
 .btn-primary:hover {
-  background: #013a85;
+  background: var(--accent-hover);
 }
 .btn-ghost {
-  background: transparent;
+  background: var(--paper-2);
   border-color: var(--line-2);
   color: var(--ink);
 }
 .btn-ghost:hover {
-  border-color: var(--ink);
+  border-color: var(--muted-2);
+  background: var(--panel-2);
 }
 
 .eyebrow {
@@ -128,11 +164,11 @@ p {
   align-items: center;
   gap: 9px;
   font-family: var(--mono);
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 500;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--accent-fg);
 }
 
 .tag {
@@ -142,20 +178,101 @@ p {
   padding: 0 9px;
   border-radius: 999px;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
   background: var(--chip);
-  color: var(--accent);
+  color: var(--accent-fg);
 }
 .tag.green {
-  background: rgba(31, 138, 91, 0.12);
+  background: var(--success-soft);
   color: var(--green);
 }
 
 .section {
-  padding: 96px 0;
+  padding: 104px 0;
 }
 @media (max-width: 720px) {
   .section {
-    padding: 64px 0;
+    padding: 68px 0;
+  }
+}
+
+/* App-parity animation curves (from the desktop app). */
+@keyframes sp-fadeup {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes sp-segment {
+  from {
+    opacity: 0;
+    transform: scaleX(0.2);
+  }
+  to {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+@keyframes sp-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+@keyframes sp-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── Scroll-reveal system for the landing page. Kept global (not component
+   scoped) so the JS-added .in class is never pruned by Svelte's scoped-CSS
+   analysis. Gated on .page.js, which the page sets on mount, so all content is
+   fully visible when JavaScript is unavailable. ── */
+.page.js .r {
+  opacity: 0;
+  transform: translateY(22px);
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 0.61, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.page.js .r.in {
+  opacity: 1;
+  transform: none;
+}
+.page.js .stagger.in > * {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: sp-fadeup 0.6s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+.page.js .stagger.in > *:nth-child(1) { animation-delay: 0.04s; }
+.page.js .stagger.in > *:nth-child(2) { animation-delay: 0.12s; }
+.page.js .stagger.in > *:nth-child(3) { animation-delay: 0.2s; }
+.page.js .stagger.in > *:nth-child(4) { animation-delay: 0.28s; }
+.page.js .cap .seg {
+  transform: scaleX(0);
+}
+.page.js .cap.in .seg {
+  animation: sp-segment 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+  animation-delay: calc(var(--i) * 0.08s);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
+  /* Never leave reveal content hidden when motion is reduced. */
+  .page.js .r,
+  .page.js .stagger.in > *,
+  .page.js .cap .seg {
+    opacity: 1 !important;
+    transform: none !important;
   }
 }
