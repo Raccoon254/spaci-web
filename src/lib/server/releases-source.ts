@@ -8,7 +8,9 @@ export async function getReleases(): Promise<Release[]> {
   try {
     const rows = await prisma.release.findMany({
       include: { files: true },
-      orderBy: { date: 'desc' }
+      // Order by release date, then createdAt as a tiebreaker so two releases
+      // cut on the same day (e.g. 2.0.0 and 2.0.1) resolve to the newer one.
+      orderBy: [{ date: 'desc' }, { createdAt: 'desc' }]
     });
     if (!rows.length) return staticReleases;
     return rows.map((r) => ({
