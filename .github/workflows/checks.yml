@@ -1,0 +1,41 @@
+name: Checks
+
+# The site had no CI at all, so a release-data mistake (a stale baseline, a
+# missing sha512, a version that does not match package.json) could only be
+# caught by noticing it in production. These run on every push and PR.
+#
+# No database is needed: `prisma generate` only reads the schema, and the build
+# never queries Neon (src/lib/server/db.ts constructs the client lazily).
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Typecheck, release data and build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Release data
+        run: npm run check:releases
+
+      - name: Typecheck
+        run: npm run check
+
+      - name: Build
+        run: npm run build
