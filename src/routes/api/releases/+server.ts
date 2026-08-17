@@ -1,16 +1,21 @@
 import { json } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
-import { releases, latest, type Release } from '$lib/releases';
+import { type Release } from '$lib/releases';
 import { prisma } from '$lib/server/db';
+import { getReleases } from '$lib/server/releases-source';
 import type { RequestHandler } from './$types';
 
-// The static src/lib/releases.ts stays the canonical list for the rendered site.
-// This endpoint serves that list as JSON (GET) and lets a CI release script push
-// new releases into Neon without a redeploy (POST), feeding the DB-backed pieces.
+// CI publishes each release into Neon (POST) and every read surface serves it
+// from there, falling back to the static src/lib/releases.ts baseline when the
+// database is unreachable.
 
 export const GET: RequestHandler = async () => {
+  // Read through the same DB-first source as the changelog, download page and
+  // update feed. Reading the static file here made this endpoint the one place
+  // that still advertised an old version after a release.
+  const releases = await getReleases();
   return json(
-    { releases, latest: latest.version },
+    { releases, latest: releases[0]?.version ?? null },
     {
       headers: {
         // Short caching: the list is effectively static between releases.
