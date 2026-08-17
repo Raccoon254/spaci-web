@@ -41,9 +41,68 @@ export interface Release {
 
 export const releases: Release[] = [
   {
+    version: '2.0.1',
+    date: '2026-06-24',
+    tag: 'Latest',
+    major: false,
+    summary: 'Signed and notarized macOS builds, so automatic updates now work end to end.',
+    added: [],
+    improved: [
+      'macOS builds are now code-signed and notarized by Apple, so Spaci opens cleanly without Gatekeeper warnings.',
+      'In-app updates now install on macOS: when a new version is downloaded, Restart to update applies it and relaunches into the new version.'
+    ],
+    fixed: [
+      'Restart to update no longer silently fails on macOS.'
+    ],
+    files: [
+      { platform: 'mac', arch: 'Intel', file: 'Spaci-2.0.1-mac.zip', size: '96 MB', bytes: 100286105, sha512: 'Vx6+xNcNzBHbt21vrMPjydgREE/dLRr/9rbiPwbEA0Y0p5O98PuUxvNvCfOSz5jF1Qpf8+GE2JVar0P/DLz/Hw==' },
+      { platform: 'mac', arch: 'Apple Silicon', file: 'Spaci-2.0.1-arm64-mac.zip', size: '88 MB', bytes: 91758325, sha512: 'p13QShdKfbJHG/8q/4Vvv9gppd8PuaXGc0Tf3oQnaZLLkTfGJMhtQewuyyxmaCHX2lLRjs59cpWfDGow7OmPKg==' },
+      { platform: 'mac', arch: 'Intel', file: 'Spaci-2.0.1.dmg', size: '99 MB', bytes: 103981425, sha512: '9PnkEoORpMgrWdl0XZQV6Q2j130BZwiaw8+/1rEVtFbXYvP7aQzJ9uTqan0iZitS/yW/EVZB/E5bhkYd9PXZ0Q==' },
+      { platform: 'mac', arch: 'Apple Silicon', file: 'Spaci-2.0.1-arm64.dmg', size: '91 MB', bytes: 95404921, sha512: 'GHsOdIjNeYeCcodi3vLD3EqpQb5CyvdnglKxvcS5vaAtAc0/Vu5REM949pzbcyTny3F4n4wxKAZiLgv+8ErV8w==' },
+      { platform: 'windows', arch: 'x64', file: 'Spaci-Setup-2.0.1.exe', size: '76 MB', bytes: 79202713, sha512: 'mMv71/UQcoJG+HGoXjS0zxRROCA1x0DLa4E6BuuN7zt152K2Du0rQV/0TPy6/JT90i4W8xHexSV2/vP+pCKM+g==' },
+      { platform: 'linux', arch: 'x86_64', file: 'Spaci-2.0.1.AppImage', size: '103 MB', bytes: 108015222, sha512: '2a2hhETejSyiTtL6v0lonVNvRAtdD5kHdfkOOq7gi6r/GUsqP633tLli7LOthih129curns6By5Z3qwb25cszA==' }
+    ]
+  },
+  {
+    version: '2.0.0',
+    date: '2026-06-24',
+    tag: 'Major',
+    major: true,
+    summary: 'A complete redesign: a calmer, faster Spaci with a unified scanning experience and a richer storage breakdown.',
+    added: [
+      'A redesigned interface across every screen, matched to the new Spaci motion brand.',
+      'Storage drill-down: open any category to see its biggest folders and files, and reveal them in Finder.',
+      'A guided 3-step onboarding that starts indexing your Mac in the background while you set up.',
+      'Cross-platform browser cache cleaning across Chrome, Safari, Firefox, Edge, Arc and more.',
+      'A consistent live scanning card, with the animated logo, running counts and progress, on every screen.'
+    ],
+    improved: [
+      'Cache-first screens: your last results show instantly, then refresh quietly in the background.',
+      'A new file-based icon system with crisp brand and category icons everywhere.',
+      'Storage classification is more accurate and now splits out App Data, Browsers, Xcode and Developer.',
+      'Cleaning shows an instant loader, a celebratory summary and a toast confirmation.',
+      'Settings gains an About section with version, license and links, plus a font selector.'
+    ],
+    fixed: [
+      'System Cleaner no longer gets stuck on the measuring screen.',
+      'Filtering projects while a scan is running is smooth and no longer flickers.',
+      'Browser cache icons, including Safari, now render correctly.',
+      'App Data is now sized accurately instead of being wildly over-counted.',
+      'Selecting items and navigating no longer replays the entrance animations.'
+    ],
+    files: [
+      { platform: 'mac', arch: 'Apple Silicon', file: 'Spaci-2.0.0-arm64-mac.zip', size: '88 MB', bytes: 92668019, sha512: 'bLg6U4UIqdhaDcIJOPnpb13TCkjygRNLCCYsLDaIZ3nIcWXOWbac35E85noChSERr+iQQSivF3b3cIHiSaEtkQ==' },
+      { platform: 'mac', arch: 'Intel', file: 'Spaci-2.0.0-mac.zip', size: '94 MB', bytes: 98723033, sha512: 'yGjCpEeiHl4eZLKypEL+7Ta4DkxVr3GA2GG1Mraw/0KGe7BmRSt4Xtb9Aq0vSWdk/ZNPjGRgP8ZoiL82M4oK7w==' },
+      { platform: 'mac', arch: 'Apple Silicon', file: 'Spaci-2.0.0-arm64.dmg', size: '92 MB', bytes: 96031958, sha512: 'q2fIC/PZhsNlR4u/xA5sZu4H0IK4eYMsfb3aycg7EL/9PmBfrd14Dm65daKr2/89wTF6n864XV/lM5nlRNpk9g==' },
+      { platform: 'mac', arch: 'Intel', file: 'Spaci-2.0.0.dmg', size: '97 MB', bytes: 102032701, sha512: 'Cv/UII8x1MV0GMy9H3HtxgT9tR+LdGnlIsaTl5oH0uiStdM5EbtmISLC72Q8Jr132mPWph6YzwP4FSVMsNStCQ==' },
+      { platform: 'windows', arch: 'x64', file: 'Spaci-Setup-2.0.0.exe', size: '76 MB', bytes: 79202786, sha512: 'xII0biEjuyx+Thp0BhK3ojbegFvZVdCoWLR87OBXUbr7EsBCjKVW0qJtPUIHPxYueMvinjhTyMGHRKwMBcqhCA==' },
+      { platform: 'linux', arch: 'x86_64', file: 'Spaci-2.0.0.AppImage', size: '103 MB', bytes: 108015200, sha512: 'f+T4sqB/+WlZqhKj1sfLJe5Do5faMyOsiTBaC0iauj5IHkzjObYoovJ218TSViUyM4bcaaTCa8mtu9d5KEDwAw==' }
+    ]
+  },
+  {
     version: '1.2.0',
     date: '2026-06-20',
-    tag: 'Latest',
+    tag: 'Feature',
     major: true,
     summary: 'Disk breakdown, background scans and a calmer cleanup flow.',
     added: [

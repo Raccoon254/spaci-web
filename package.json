@@ -1,7 +1,7 @@
 {
   "name": "spaci-web",
   "private": true,
-  "version": "1.2.0",
+  "version": "2.0.1",
   "type": "module",
   "description": "Spaci marketing site, changelog and update feed. Built by kentom.co.ke.",
   "engines": {
@@ -12,6 +12,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "check:releases": "tsx scripts/check-releases.ts",
+    "verify": "npm run check:releases && npm run check && npm run build",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "postinstall": "prisma generate"
