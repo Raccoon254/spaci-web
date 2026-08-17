@@ -41,9 +41,38 @@ export interface Release {
 
 export const releases: Release[] = [
   {
+    version: '2.1.0',
+    date: '2026-08-17',
+    tag: 'Latest',
+    major: false,
+    summary: 'Spaci now sees Docker, and scans your projects about ten times faster.',
+    added: [
+      'Docker: Spaci measures the images, containers, volumes and build cache the engine is holding, which a normal disk scan cannot see because it all lives inside one VM disk.',
+      'Projects that use Docker are marked in the list, and their project page shows the compose services and the engine storage that actually belongs to them.',
+      'Reclaim Docker build cache and unused images from the System screen or straight from Recommendations. Volumes are never touched: they hold your databases and uploads.'
+    ],
+    improved: [
+      'Project scans are around ten times faster: a home folder that took two and a half minutes now takes about twelve seconds.',
+      'Artifacts are measured the same way as system caches, so the space Spaci promises is the space cleaning actually frees.',
+      '.NET projects now offer the whole obj folder instead of hundreds of fragments buried inside it.'
+    ],
+    fixed: [
+      'Sizes no longer count a hardlinked file once per link, which could overstate a single node_modules folder by more than 2 GB.',
+      'The artifact scan no longer walks into .git, which was most of the time spent on long-lived repositories.'
+    ],
+    files: [
+      { platform: 'mac', arch: 'Intel', file: 'Spaci-2.1.0-mac.zip', size: '96 MB', bytes: 100300801, sha512: 'OBgZvN/2zcp8PC7Z92yhQGLYVInIDqCAOWaSr+Ou6YnDhU2vk050DRqGMFyW0SuCOT1vSZTfZcbigD1f/Vp6KQ==' },
+      { platform: 'mac', arch: 'Apple Silicon', file: 'Spaci-2.1.0-arm64-mac.zip', size: '88 MB', bytes: 91773042, sha512: 'yvYCdRx7jVLH2M+Ph0GhcdFeGXwIHi7dot89OtehLi+KZLtAbXpvwUeoNb/uMA/5zkMuUtesHQU5VA/o5wupgA==' },
+      { platform: 'mac', arch: 'Intel', file: 'Spaci-2.1.0.dmg', size: '99 MB', bytes: 103965810, sha512: 'n476cbRjwD0UxdFp/HBTiPYSVrCHBbAzOHfOnI7yAi8LYgORLvA9/MdgTngvfXq+aMThRjT+kAC3o6kSR9ZitA==' },
+      { platform: 'mac', arch: 'Apple Silicon', file: 'Spaci-2.1.0-arm64.dmg', size: '91 MB', bytes: 95412876, sha512: '3DL4Heq6rL2GhxzXV/PVdiXfioyjBBw4eMVUIqf155IL7R9qH0F0zAP+6u4cB16Tev5qdyX1od1CJ7hTyT25Dw==' },
+      { platform: 'windows', arch: 'x64', file: 'Spaci-Setup-2.1.0.exe', size: '76 MB', bytes: 79215094, sha512: 'hy78NZpZuzi/cws1d8+7a2FofbLm+wgjnrzWvdjqYCBRZz6AElYZVUhCRCY/ystFt9MyYaJI+WUiup/wzK70EA==' },
+      { platform: 'linux', arch: 'x86_64', file: 'Spaci-2.1.0.AppImage', size: '103 MB', bytes: 108060352, sha512: 'MwEVynK0nVik+tcnyKvoqiM4SG39guxmjch47O0Qgh74Vqc5NqQcERFZu5kZO3TxhLRn3IsWbhM5G5RWHpMeCg==' }
+    ]
+  },
+  {
     version: '2.0.1',
     date: '2026-06-24',
-    tag: 'Latest',
+    tag: 'Feature',
     major: false,
     summary: 'Signed and notarized macOS builds, so automatic updates now work end to end.',
     added: [],

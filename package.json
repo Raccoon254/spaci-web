@@ -1,7 +1,7 @@
 {
   "name": "spaci-web",
   "private": true,
-  "version": "2.0.1",
+  "version": "2.1.0",
   "type": "module",
   "description": "Spaci marketing site, changelog and update feed. Built by kentom.co.ke.",
   "engines": {
