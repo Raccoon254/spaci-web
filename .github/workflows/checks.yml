@@ -18,7 +18,7 @@ permissions:
 
 jobs:
   verify:
-    name: Typecheck, release data and build
+    name: Typecheck, release data, tests and build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -33,6 +33,9 @@ jobs:
 
       - name: Release data
         run: npm run check:releases
+
+      - name: Unit tests
+        run: npm test
 
       - name: Typecheck
         run: npm run check
