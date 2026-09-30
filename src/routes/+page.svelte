@@ -32,6 +32,9 @@
   $: macFiles = downloadsFor('mac', data.latest);
   $: winFiles = downloadsFor('windows', data.latest);
   $: linuxFiles = downloadsFor('linux', data.latest);
+  // Linux: the .deb (Ubuntu, Debian) installs its icon and launches on 24.04.
+  const primaryOf = (card: { key: string; files: { file: string }[] }) =>
+    (card.key === 'linux' && card.files.find((f) => /\.deb$/i.test(f.file))) || card.files[0];
 
   // OS logos are the actual brand marks from svgl.app (static/logos).
   $: platformCards = [
@@ -298,7 +301,7 @@
                 </a>
               {/each}
             </div>
-            <a class="btn btn-primary dl-btn" href={fileUrl(card.files[0].file)}>Download</a>
+            <a class="btn btn-primary dl-btn" href={fileUrl(primaryOf(card).file)}>Download</a>
             <p class="dl-meta mono">v{data.latest.version} · {releaseDate}</p>
           </article>
         {/each}

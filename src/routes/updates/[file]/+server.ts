@@ -26,22 +26,22 @@ const FEED_PLATFORM: Record<string, Platform> = {
   'latest-linux.yml': 'linux'
 };
 
-const INSTALLER_EXT = ['.dmg', '.exe', '.AppImage', '.zip', '.blockmap'];
+const INSTALLER_EXT = ['.dmg', '.exe', '.AppImage', '.deb', '.zip', '.blockmap'];
 
 // Classify a countable download. A fresh install is a .dmg, the Windows setup
-// .exe or an .AppImage. The mac .zip is what electron-updater fetches to update
+// .exe, an .AppImage or a .deb. The mac .zip is what electron-updater fetches to update
 // an installed app. Anything else (notably .blockmap) is not a download.
 // Note: on Windows the updater also fetches the setup .exe, so a Windows update
 // cannot be told apart from a fresh install by file name alone.
 function downloadKind(file: string): 'install' | 'update' | null {
-  if (/\.(dmg|exe|AppImage)$/.test(file)) return 'install';
+  if (/\.(dmg|exe|AppImage|deb)$/.test(file)) return 'install';
   if (/\.zip$/.test(file)) return 'update';
   return null;
 }
 
 // The files electron-updater actually downloads to UPDATE an installed app:
 // on macOS that is the .zip (the .dmg is for fresh installs only), on Windows
-// the .exe, on Linux the .AppImage. We feed those into the yml so auto-update
+// the .exe, on Linux the .AppImage or the .deb. We feed those into the yml so auto-update
 // resolves the right artifact. When only a .dmg is present (the static baseline
 // before a real build), we fall back to whatever we have.
 function updateArtifacts(files: ReleaseFile[], platform: Platform): ReleaseFile[] {
@@ -49,6 +49,8 @@ function updateArtifacts(files: ReleaseFile[], platform: Platform): ReleaseFile[
     const zips = files.filter((f) => /\.zip$/i.test(f.file));
     if (zips.length) return zips;
   }
+  // Linux lists both: AppImageUpdater picks the .AppImage and DebUpdater (a
+  // .deb install) picks the .deb from the same latest-linux.yml.
   return files;
 }
 
