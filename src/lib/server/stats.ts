@@ -19,6 +19,8 @@ export interface Stats {
   generatedAt: string;
   active7: number;
   active30: number;
+  /** Installs on prerelease builds (x.y.z-rc.n) in the last 7 days: our own testing, kept out of every other count. */
+  testInstalls7: number;
   versions: { version: string; installs: number }[];
   perDay: DayStats[];
 }
@@ -97,7 +99,14 @@ export async function getStats(days: number): Promise<Stats> {
   const in7 = new Set<string>();
   const in30 = new Set<string>();
 
+  // Prerelease builds (2.2.1-rc.3) are release candidates we test ourselves;
+  // counting them would inflate real usage, so they are reported apart.
+  const tests7 = new Set<string>();
   for (const a of actives) {
+    if (a.version.includes('-')) {
+      if (a.day >= w7) tests7.add(a.installHash);
+      continue;
+    }
     const k = dayKey(a.day);
     if (!perDayInstalls.has(k)) perDayInstalls.set(k, new Set());
     perDayInstalls.get(k)!.add(a.installHash);
@@ -132,6 +141,7 @@ export async function getStats(days: number): Promise<Stats> {
     generatedAt: new Date().toISOString(),
     active7: in7.size,
     active30: in30.size,
+    testInstalls7: tests7.size,
     versions,
     perDay: [...perDay.values()].reverse()
   };
