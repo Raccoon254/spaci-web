@@ -1,4 +1,4 @@
-import { getLatest } from '$lib/server/releases-source';
+import { getLatest, withoutNotes } from '$lib/server/releases-source';
 import type { LayoutServerLoad } from './$types';
 
 // A release counts as "new" (worth announcing on the strip above the nav) when
@@ -10,5 +10,5 @@ export const load: LayoutServerLoad = async () => {
   const latest = await getLatest();
   const ageDays = (Date.now() - Date.parse(latest.date)) / 86_400_000;
   const isNew = latest.major || ageDays <= FRESH_WINDOW_DAYS;
-  return { latest, isNew };
+  return { latest: withoutNotes(latest), isNew };
 };

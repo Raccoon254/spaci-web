@@ -55,6 +55,13 @@ export async function getReleases(): Promise<Release[]> {
   }
 }
 
+// A release without its raw Markdown notes (up to 50,000 chars), for page loads
+// that only need versions and files. Otherwise every page would serialize the
+// latest notes into its hydration data.
+export function withoutNotes(r: Release): Release {
+  return { ...r, notes: null };
+}
+
 export async function getLatest(): Promise<Release> {
   const all = await getReleases();
   return all[0] ?? staticLatest;
