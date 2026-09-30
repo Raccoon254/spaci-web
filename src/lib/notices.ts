@@ -140,7 +140,7 @@ export function toNotice(row: NoticeRow): Notice {
     summary: plainText(row.summary, 200),
     body: markdownToBlocksCached(row.body),
     media: sanitizeMedia(row.media),
-    cta: ctaUrl && row.ctaLabel ? { label: plainText(row.ctaLabel, 40), url: ctaUrl } : null,
+    cta: ctaUrl && row.ctaLabel ? { label: plainText(row.ctaLabel, 80), url: ctaUrl } : null,
     version: row.version,
     audience,
     startsAt: row.startsAt.toISOString(),

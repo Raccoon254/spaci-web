@@ -6,14 +6,17 @@ import { isHttps, safeHref, safeImageUrl, type Media } from '../blocks';
 import { KINDS, PLATFORMS, SEVERITIES, type NoticeKind, type NoticePlatform, type NoticeRow, type Severity } from '../notices';
 import { compareSemver, normalizeSemver } from '../semver';
 
+// Kept in step with the desktop release validator (scripts/changelog-lib.mjs in
+// the app repo): anything release.mjs accepts before tagging must publish here,
+// because sync-feed does not surface these warnings.
 export const LIMITS = {
   title: 80,
   summary: 200,
-  body: 20_000,
-  mediaItems: 8,
+  body: 50_000,
+  mediaItems: 12,
   alt: 300,
   caption: 300,
-  ctaLabel: 40,
+  ctaLabel: 80,
   url: 2048,
   highlight: 160,
   notes: 50_000,
@@ -314,8 +317,12 @@ export function validateReleaseExtras(body: Record<string, unknown>): { value: R
   }
 
   if (body.notes !== undefined && body.notes !== null && body.notes !== '') {
+    // Longer notes are truncated, not dropped: the desktop allows a notes file
+    // up to 200 KB, and conversion only reads the first MAX_INPUT chars anyway.
+    const raw = typeof body.notes === 'string' && body.notes.length > LIMITS.notes ? body.notes.slice(0, LIMITS.notes) : body.notes;
+    if (raw !== body.notes) warnings.push(`notes longer than ${LIMITS.notes} characters; truncated`);
     const e: string[] = [];
-    const n = text(e, 'notes', body.notes, { max: LIMITS.notes, multiline: true });
+    const n = text(e, 'notes', raw, { max: LIMITS.notes, multiline: true });
     if (e.length) warnings.push(...e.map((m) => `${m}; notes dropped`));
     else value.notes = n;
   }

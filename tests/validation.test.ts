@@ -36,7 +36,7 @@ test('enums, lengths and types', () => {
   has({ ...base, title: 'x'.repeat(81) }, /title must be at most 80/);
   has({ ...base, title: 'a\nb' }, /control/);
   has({ ...base, summary: 'x'.repeat(201) }, /summary/);
-  has({ ...base, body: 'x'.repeat(20_001) }, /body/);
+  has({ ...base, body: 'x'.repeat(50_001) }, /body/);
   has({ ...base, body: 42 }, /body must be a string/);
   has({ ...base, dismissible: 'yes' }, /dismissible/);
   has({ ...base, extra: 1 }, /unknown field: extra/);
@@ -58,7 +58,7 @@ test('media must be allowlisted https with alt text', () => {
   has({ ...base, media: [{ url: 'data:image/png;base64,AA', alt: 'x' }] }, /media\[0\].url/);
   has({ ...base, media: [{ url: 'https://spaci.kentom.co.ke/a.png' }] }, /media\[0\].alt/);
   has({ ...base, media: 'x' }, /media must be an array/);
-  has({ ...base, media: Array(9).fill({ url: 'https://spaci.kentom.co.ke/a.png', alt: 'a' }) }, /at most 8/);
+  has({ ...base, media: Array(13).fill({ url: 'https://spaci.kentom.co.ke/a.png', alt: 'a' }) }, /at most 12/);
   assert.ok(validateNotice({ ...base, media: [{ url: 'https://spaci.kentom.co.ke/a.png', alt: 'a' }] }, NOW).ok);
 });
 
@@ -161,4 +161,32 @@ test('release extras: bad highlight and notice are dropped, never thrown', () =>
   assert.ok(warnings.some((w) => /endsInDays/.test(w)));
   assert.ok(warnings.some((w) => /cta.url/.test(w)));
   assert.deepEqual(validateReleaseExtras({}), { value: { highlight: null, notes: null, media: [], links: [], notice: null }, warnings: [] });
+});
+
+// The desktop release validator (scripts/changelog-lib.mjs) accepts up to 12
+// media, CTA labels up to 80 chars and a notes file up to 200 KB. Whatever it
+// accepts must publish here, since sync-feed does not print warnings.
+test('release extras: limits match the desktop release validator', () => {
+  const media = Array.from({ length: 12 }, (_, i) => ({
+    src: `https://raw.githubusercontent.com/Raccoon254/spaci/v2.3.0/changelog/media/${i}.png`,
+    alt: `shot ${i}`
+  }));
+  const { value, warnings } = validateReleaseExtras({
+    media,
+    notes: '# Notes\n\n' + 'word '.repeat(12_000),
+    notice: { severity: 'update', cta: { label: 'L'.repeat(80), url: 'https://spaci.kentom.co.ke/download' } }
+  });
+  assert.equal(value.media.length, 12);
+  assert.ok(value.notice && value.notice.cta && value.notice.cta.label.length === 80);
+  assert.ok(value.notes && value.notes.length === 50_000, 'long notes are truncated, not dropped');
+  assert.deepEqual(warnings, ['notes longer than 50000 characters; truncated']);
+});
+
+test('admin notices accept an 80 char CTA label and a 50,000 char body', () => {
+  const r = validateNotice(
+    { ...base, body: 'x'.repeat(50_000), cta: { label: 'L'.repeat(80), url: 'https://spaci.kentom.co.ke/' } },
+    NOW
+  );
+  assert.ok(r.ok, r.ok ? '' : r.errors.join(', '));
+  has({ ...base, cta: { label: 'L'.repeat(81), url: 'https://spaci.kentom.co.ke/' } }, /cta.label must be at most 80/);
 });

@@ -158,7 +158,7 @@
     <fieldset>
       <legend>Call to action (optional)</legend>
       <div class="row">
-        <label><span>Label</span><input bind:value={ctaLabel} maxlength="40" /></label>
+        <label><span>Label</span><input bind:value={ctaLabel} maxlength="80" /></label>
         <label class="grow"><span>URL (https)</span><input bind:value={ctaUrl} placeholder="https://..." /></label>
       </div>
     </fieldset>

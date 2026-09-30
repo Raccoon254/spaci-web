@@ -533,7 +533,7 @@ export function markdownToBlocks(input: unknown): Block[] {
 }
 
 // Validates and normalizes a media list: https allowlisted images with alt text.
-export function sanitizeMedia(input: unknown, max = 8): Media[] {
+export function sanitizeMedia(input: unknown, max = 12): Media[] {
   if (!Array.isArray(input)) return [];
   const out: Media[] = [];
   for (const m of input) {
