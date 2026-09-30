@@ -14,6 +14,7 @@ export const load: PageServerLoad = async ({ params }) => {
 
 export const actions: Actions = {
   save: async ({ request, params }) => {
+    if (!validId(params.id)) error(404, 'Notice not found');
     const p = await readPayload(request);
     if (!p.ok) return formFail(400, ['the form could not be read'], p.raw);
     let r;

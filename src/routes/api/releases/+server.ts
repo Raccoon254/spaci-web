@@ -8,6 +8,7 @@ import { Prisma } from '@prisma/client';
 import { normalizeSemver, previousVersion } from '$lib/semver';
 import { validateReleaseExtras } from '$lib/server/notice-validation';
 import { upsertReleaseNotice } from '$lib/server/notices-db';
+import { safeEqual } from '$lib/server/analytics';
 import type { RequestHandler } from './$types';
 
 // CI publishes each release into Neon (POST) and every read surface serves it
@@ -33,8 +34,10 @@ export const GET: RequestHandler = async () => {
 // Publish hook for future CI. POST a Release-shaped JSON body with the shared
 // secret header to upsert it into Neon (version unique, files recreated).
 export const POST: RequestHandler = async ({ request }) => {
+  // Constant-time compare; an unset RELEASE_PUBLISH_SECRET keeps publishing closed.
   const secret = request.headers.get('x-publish-secret');
-  if (!secret || secret !== env.RELEASE_PUBLISH_SECRET) {
+  const expected = env.RELEASE_PUBLISH_SECRET;
+  if (!secret || !expected || !(await safeEqual(secret, expected))) {
     return json({ ok: false, error: 'Unauthorized' }, { status: 401 });
   }
 
