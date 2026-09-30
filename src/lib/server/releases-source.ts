@@ -1,5 +1,20 @@
 import { releases as staticReleases, latest as staticLatest, type Release, type Platform } from '$lib/releases';
 import { prisma } from '$lib/server/db';
+import { safeHref, isHttps, plainText, sanitizeMedia } from '$lib/blocks';
+
+// Stored links are re-checked on read (defense in depth): https only.
+function sanitizeLinks(input: unknown): { label: string; url: string }[] {
+  if (!Array.isArray(input)) return [];
+  const out: { label: string; url: string }[] = [];
+  for (const l of input) {
+    if (!l || typeof l !== 'object') continue;
+    const r = l as Record<string, unknown>;
+    const url = isHttps(r.url) ? safeHref(r.url) : null;
+    const label = plainText(r.label, 80);
+    if (url && label) out.push({ label, url });
+  }
+  return out.slice(0, 20);
+}
 
 // Returns all releases newest-first. Reads from Neon when available, and falls
 // back to the static releases.ts baseline if the DB is empty or unreachable, so
@@ -22,6 +37,10 @@ export async function getReleases(): Promise<Release[]> {
       added: r.added,
       improved: r.improved,
       fixed: r.fixed,
+      highlight: r.highlight,
+      notes: r.notes,
+      media: sanitizeMedia(r.media),
+      links: sanitizeLinks(r.links),
       files: r.files.map((f) => ({
         platform: f.platform as Platform,
         arch: f.arch,
@@ -34,6 +53,13 @@ export async function getReleases(): Promise<Release[]> {
   } catch {
     return staticReleases;
   }
+}
+
+// A release without its raw Markdown notes (up to 50,000 chars), for page loads
+// that only need versions and files. Otherwise every page would serialize the
+// latest notes into its hydration data.
+export function withoutNotes(r: Release): Release {
+  return { ...r, notes: null };
 }
 
 export async function getLatest(): Promise<Release> {

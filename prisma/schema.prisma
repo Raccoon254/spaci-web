@@ -33,6 +33,15 @@ model Release {
   fixed     String[]
   createdAt DateTime      @default(now())
   files     ReleaseFile[]
+  // Rich release notes (all optional, nullable so existing rows stay valid).
+  // highlight: one-line plain-text message (<= 160 chars).
+  // notes: raw Markdown, converted to blocks on read by src/lib/blocks.ts.
+  // media: [{ url, alt, caption? }], allowlisted https images only.
+  // links: [{ label, url }], https only.
+  highlight String?
+  notes     String?
+  media     Json?
+  links     Json?
 
   @@schema("spaci")
 }
@@ -106,5 +115,36 @@ model GithubDownloadSnapshot {
 
   @@unique([day, tag, asset])
   @@index([day])
+  @@schema("spaci")
+}
+
+// In-app notices shown by the desktop app (GET /api/notices) and managed at
+// /admin/notices. `body` is raw Markdown, converted to blocks on read by
+// src/lib/blocks.ts (the security boundary). A 'release' notice is created by
+// POST /api/releases; @@unique([kind, version]) makes that upsert idempotent
+// (announcements have a null version, and Postgres allows many NULLs).
+model Notice {
+  id          String    @id @default(cuid())
+  kind        String    @default("announcement") // release | announcement
+  severity    String    @default("info") // info | update | important | critical
+  title       String
+  summary     String    @default("")
+  body        String    @default("")
+  media       Json?
+  ctaLabel    String?
+  ctaUrl      String?
+  version     String?
+  // Audience: empty platforms means every platform; version bounds inclusive.
+  platforms   String[]
+  minVersion  String?
+  maxVersion  String?
+  startsAt    DateTime  @default(now())
+  endsAt      DateTime?
+  dismissible Boolean   @default(true)
+  publishedAt DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([kind, version])
+  @@index([startsAt])
   @@schema("spaci")
 }

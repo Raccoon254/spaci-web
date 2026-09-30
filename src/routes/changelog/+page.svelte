@@ -1,5 +1,6 @@
 <script lang="ts">
   import Seo from '$lib/components/Seo.svelte';
+  import Blocks from '$lib/components/blocks/Blocks.svelte';
   import type { PageData } from './$types';
 
   export let data: PageData;
@@ -47,6 +48,27 @@
 
           <p class="summary">{r.summary}</p>
 
+          {#if r.highlight}
+            <p class="highlight">{r.highlight}</p>
+          {/if}
+
+          {#if r.media?.length}
+            <div class="media">
+              {#each r.media as m, mi}
+                <figure class:hero={mi === 0}>
+                  <img src={m.url} alt={m.alt} loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+                  {#if m.caption}<figcaption>{m.caption}</figcaption>{/if}
+                </figure>
+              {/each}
+            </div>
+          {/if}
+
+          {#if r.blocks.length}
+            <div class="notes">
+              <Blocks blocks={r.blocks} />
+            </div>
+          {/if}
+
           {#if r.added.length}
             <div class="group">
               <span class="group-label">New</span>
@@ -77,6 +99,14 @@
                   <li>{item}</li>
                 {/each}
               </ul>
+            </div>
+          {/if}
+
+          {#if r.links?.length}
+            <div class="links">
+              {#each r.links as l}
+                <a href={l.url} target="_blank" rel="noopener noreferrer">{l.label}</a>
+              {/each}
             </div>
           {/if}
         </div>
@@ -163,6 +193,63 @@
   .summary {
     margin-top: 14px;
     font-size: 18px;
+  }
+
+  .highlight {
+    margin-top: 14px;
+    padding: 10px 14px;
+    border-left: 3px solid var(--accent);
+    background: var(--accent-soft);
+    border-radius: 0 10px 10px 0;
+    color: var(--ink);
+    font-size: 15px;
+  }
+
+  .media {
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+  }
+  .media figure {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+  }
+  .media figure.hero {
+    grid-column: 1 / -1;
+  }
+  .media img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--line);
+    background: var(--paper-2);
+  }
+  .media figcaption {
+    font-size: 13px;
+    color: var(--muted-2);
+  }
+
+  .notes {
+    margin-top: 20px;
+    max-width: 720px;
+  }
+
+  .links {
+    margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 18px;
+  }
+  .links a {
+    font-size: 14px;
+    color: var(--accent-fg);
+    text-decoration: underline;
+    text-underline-offset: 2px;
   }
 
   .group {
