@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import Icon from '$lib/components/Icon.svelte';
   import type { Release } from '$lib/releases';
 
   export let release: Release;
@@ -38,7 +39,7 @@
       <span class="ver mono">v{release.version}</span>
       <span class="sep" aria-hidden="true"></span>
       <span class="headline">{headline}</span>
-      <span class="cta">Read the changelog<span class="arrow" aria-hidden="true">→</span></span>
+      <span class="cta">Read the changelog<span class="arrow" aria-hidden="true"><Icon name="chevron-right" size={15} /></span></span>
     </a>
     <button class="close" on:click={close} aria-label="Dismiss announcement">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
@@ -135,6 +136,7 @@
     font-weight: 600;
   }
   .arrow {
+    display: inline-flex;
     transition: transform 0.16s ease;
   }
   .strip-inner:hover .arrow {

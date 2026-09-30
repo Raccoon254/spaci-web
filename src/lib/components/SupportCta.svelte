@@ -36,7 +36,7 @@
           </span>
           <span class="card-cta">
             Donate
-            <Icon name="arrow" size={15} />
+            <Icon name="chevron-right" size={15} />
           </span>
         </span>
       </a>
@@ -57,7 +57,7 @@
           </span>
           <span class="card-cta">
             Partner with us
-            <Icon name="arrow" size={15} />
+            <Icon name="chevron-right" size={15} />
           </span>
         </span>
       </a>

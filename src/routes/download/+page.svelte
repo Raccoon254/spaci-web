@@ -190,7 +190,7 @@
           <strong>Updates automatically.</strong> Spaci checks for updates on its own and installs
           them in the background, so you only download once.
         </p>
-        <a class="foot-link" href="/changelog">See what changed <Icon name="arrow" size={15} /></a>
+        <a class="foot-link" href="/changelog">See what changed <Icon name="chevron-right" size={15} /></a>
       </div>
     </div>
   </section>
