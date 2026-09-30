@@ -325,7 +325,7 @@
     <div class="wrap">
       <div class="teaser-head r" use:inview>
         <h2><span class="th-mark"><LogoMotion size={20} anim="chase" /></span> What's new</h2>
-        <a class="teaser-link" href="/changelog">Full changelog <Icon name="arrow" size={15} /></a>
+        <a class="teaser-link" href="/changelog">Full changelog <Icon name="chevron-right" size={15} /></a>
       </div>
       <div class="teaser-card r" use:inview>
         <div class="teaser-top">
