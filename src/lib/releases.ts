@@ -37,6 +37,12 @@ export interface Release {
   improved: string[];     // "Improved"
   fixed: string[];        // "Fixed"
   files: ReleaseFile[];
+  // Optional rich notes, published by CI (POST /api/releases) and stored in
+  // Neon. Absent on the static baseline below.
+  highlight?: string | null;                                  // one line, plain text
+  notes?: string | null;                                      // raw Markdown
+  media?: { url: string; alt: string; caption?: string }[];   // allowlisted https images
+  links?: { label: string; url: string }[];                   // https only
 }
 
 export const releases: Release[] = [
