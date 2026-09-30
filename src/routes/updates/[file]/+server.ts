@@ -28,6 +28,17 @@ const FEED_PLATFORM: Record<string, Platform> = {
 
 const INSTALLER_EXT = ['.dmg', '.exe', '.AppImage', '.zip', '.blockmap'];
 
+// Classify a countable download. A fresh install is a .dmg, the Windows setup
+// .exe or an .AppImage. The mac .zip is what electron-updater fetches to update
+// an installed app. Anything else (notably .blockmap) is not a download.
+// Note: on Windows the updater also fetches the setup .exe, so a Windows update
+// cannot be told apart from a fresh install by file name alone.
+function downloadKind(file: string): 'install' | 'update' | null {
+  if (/\.(dmg|exe|AppImage)$/.test(file)) return 'install';
+  if (/\.zip$/.test(file)) return 'update';
+  return null;
+}
+
 // The files electron-updater actually downloads to UPDATE an installed app:
 // on macOS that is the .zip (the .dmg is for fresh installs only), on Windows
 // the .exe, on Linux the .AppImage. We feed those into the yml so auto-update
@@ -96,7 +107,7 @@ function findFileAcrossReleases(
   return undefined;
 }
 
-export const GET: RequestHandler = async ({ params }) => {
+export const GET: RequestHandler = async ({ params, request }) => {
   const file = params.file;
 
   // 1. The electron-updater feed files.
@@ -120,13 +131,17 @@ export const GET: RequestHandler = async ({ params }) => {
     const match = findFileAcrossReleases(file, all);
 
     // Record a download event, best-effort. Never block the redirect on the DB.
-    if (match) {
+    // Only real installer fetches count: .blockmap files are differential-update
+    // metadata (fetched on every update check) and HEAD requests are probes.
+    const kind = downloadKind(file);
+    if (match && kind && request.method !== 'HEAD') {
       try {
         await prisma.downloadEvent.create({
           data: {
             version: match.release.version,
             platform: match.file.platform,
-            file
+            file,
+            kind
           }
         });
       } catch {
