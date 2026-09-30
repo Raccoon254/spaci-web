@@ -132,30 +132,71 @@ elif [[ "$OS" == "Linux" ]]; then
   [[ -n "$VERSION" ]] || die "Could not reach ${SITE}. Check your connection."
   ok "Latest is v${VERSION}"
 
-  BIN_DIR="${HOME}/.local/bin"; mkdir -p "$BIN_DIR"
-  DEST="${BIN_DIR}/Spaci.AppImage"
-  step "Downloading ${APP_NAME} v${VERSION} ${GREY}(AppImage)${RESET}"
-  download "${FEED}/Spaci-${VERSION}.AppImage" "$DEST"
-  chmod +x "$DEST"
-  ok "Installed to ${DEST}"
+  [[ "$(uname -m)" == "x86_64" ]] || die "Spaci for Linux is built for x86_64 only for now. Your machine is $(uname -m)."
 
-  APPS="${HOME}/.local/share/applications"; mkdir -p "$APPS"
-  cat > "${APPS}/spaci.desktop" <<EOF
+  DEB_URL="${FEED}/spaci_${VERSION}_amd64.deb"
+  if command -v apt-get >/dev/null 2>&1 && command -v dpkg >/dev/null 2>&1 && curl -sfIL "$DEB_URL" >/dev/null 2>&1; then
+    # Debian and Ubuntu: the .deb installs the icon, the menu entry and an
+    # AppArmor profile, so it launches on Ubuntu 24.04 with the sandbox on.
+    TMP_DIR="$(mktemp -d)"; chmod 755 "$TMP_DIR"   # apt's _apt user must read it
+    TMP_DEB="${TMP_DIR}/spaci_${VERSION}_amd64.deb"
+    SUDO=""; [[ $EUID -ne 0 ]] && SUDO="sudo"
+    step "Downloading ${APP_NAME} v${VERSION} ${GREY}(.deb)${RESET}"
+    download "$DEB_URL" "$TMP_DEB"
+    step "Installing with apt ${GREY}(asks for your password)${RESET}"
+    $SUDO apt-get install -y "$TMP_DEB" || die "apt could not install Spaci. Try: sudo apt-get install -y $TMP_DEB"
+    rm -rf "$TMP_DIR"
+    # Remove an older AppImage install, so there is one Spaci that updates one way.
+    rm -f "${HOME}/.local/share/applications/spaci.desktop" "${HOME}/.local/bin/Spaci.AppImage" \
+      "${HOME}/.local/share/icons/hicolor/512x512/apps/spaci.png"
+    ok "Installed. Spaci is in your application menu"
+    printf "\n  ${GREEN}${BOLD}%s Spaci v%s is ready.${RESET}  ${GREY}Run: spaci${RESET}\n\n" "$G_OK" "$VERSION"
+  else
+    BIN_DIR="${HOME}/.local/bin"; mkdir -p "$BIN_DIR"
+    DEST="${BIN_DIR}/Spaci.AppImage"
+    step "Downloading ${APP_NAME} v${VERSION} ${GREY}(AppImage)${RESET}"
+    download "${FEED}/Spaci-${VERSION}.AppImage" "$DEST"
+    chmod +x "$DEST"
+    ok "Installed to ${DEST}"
+
+    ICON_DIR="${HOME}/.local/share/icons/hicolor/512x512/apps"; mkdir -p "$ICON_DIR"
+    curl -fsSL "${SITE}/spaci-icon.png" -o "${ICON_DIR}/spaci.png" 2>/dev/null || true
+
+    APPS="${HOME}/.local/share/applications"; mkdir -p "$APPS"
+    cat > "${APPS}/spaci.desktop" <<EOF
 [Desktop Entry]
 Name=Spaci
 Comment=Reclaim your disk from build artifacts
-Exec=${DEST}
+Exec=${DEST} %U
+Icon=spaci
+StartupWMClass=Spaci
 Type=Application
 Categories=Development;Utility;
 Terminal=false
 EOF
-  ok "Added Spaci to your application menu"
-  case ":${PATH}:" in
-    *":${BIN_DIR}:"*) ;;
-    *) warn "Add ${BIN_DIR} to your PATH to launch 'Spaci.AppImage' from a terminal." ;;
-  esac
+    command -v update-desktop-database >/dev/null 2>&1 && update-desktop-database "$APPS" >/dev/null 2>&1 || true
+    ok "Added Spaci to your application menu"
 
-  printf "\n  ${GREEN}${BOLD}%s Spaci v%s is ready.${RESET}  ${GREY}Run: %s${RESET}\n\n" "$G_OK" "$VERSION" "$DEST"
+    # AppImages need FUSE 2, which recent distributions no longer install.
+    # grep without -q reads all input, so pipefail never sees ldconfig die of SIGPIPE.
+    # ldconfig lives in /sbin, which is not on a normal user's PATH everywhere.
+    if ! (PATH="$PATH:/sbin:/usr/sbin" ldconfig -p 2>/dev/null | grep 'libfuse.so.2' >/dev/null) \
+       && ! ls /usr/lib*/libfuse.so.2 /usr/lib/*/libfuse.so.2 >/dev/null 2>&1; then
+      warn "AppImages need libfuse2, which is not installed. Install it first:"
+      if command -v apt-get >/dev/null 2>&1; then warn "  sudo apt install libfuse2t64   (libfuse2 on Ubuntu 22.04 and older)"
+      elif command -v dnf >/dev/null 2>&1; then warn "  sudo dnf install fuse-libs"
+      elif command -v pacman >/dev/null 2>&1; then warn "  sudo pacman -S fuse2"
+      elif command -v zypper >/dev/null 2>&1; then warn "  sudo zypper install libfuse2"
+      else warn "  install your distribution's FUSE 2 package (libfuse2)"
+      fi
+    fi
+    case ":${PATH}:" in
+      *":${BIN_DIR}:"*) ;;
+      *) warn "Add ${BIN_DIR} to your PATH to launch 'Spaci.AppImage' from a terminal." ;;
+    esac
+
+    printf "\n  ${GREEN}${BOLD}%s Spaci v%s is ready.${RESET}  ${GREY}Run: %s${RESET}\n\n" "$G_OK" "$VERSION" "$DEST"
+  fi
 
 else
   die "Unsupported OS: ${OS}. Download manually at ${SITE}/download"
