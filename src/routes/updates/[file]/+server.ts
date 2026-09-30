@@ -41,7 +41,7 @@ function downloadKind(file: string): 'install' | 'update' | null {
 
 // The files electron-updater actually downloads to UPDATE an installed app:
 // on macOS that is the .zip (the .dmg is for fresh installs only), on Windows
-// the .exe, on Linux the .AppImage. We feed those into the yml so auto-update
+// the .exe, on Linux the .AppImage or the .deb. We feed those into the yml so auto-update
 // resolves the right artifact. When only a .dmg is present (the static baseline
 // before a real build), we fall back to whatever we have.
 function updateArtifacts(files: ReleaseFile[], platform: Platform): ReleaseFile[] {
@@ -49,11 +49,8 @@ function updateArtifacts(files: ReleaseFile[], platform: Platform): ReleaseFile[
     const zips = files.filter((f) => /\.zip$/i.test(f.file));
     if (zips.length) return zips;
   }
-  // electron-updater can only replace an AppImage; a .deb is installed with apt.
-  if (platform === 'linux') {
-    const images = files.filter((f) => /\.AppImage$/i.test(f.file));
-    if (images.length) return images;
-  }
+  // Linux lists both: AppImageUpdater picks the .AppImage and DebUpdater (a
+  // .deb install) picks the .deb from the same latest-linux.yml.
   return files;
 }
 
