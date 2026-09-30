@@ -42,6 +42,7 @@
     <div class="cards">
       <div class="card"><span class="label">Active, 7 days</span><span class="num mono">{s.active7}</span></div>
       <div class="card"><span class="label">Active, 30 days</span><span class="num mono">{s.active30}</span></div>
+      <div class="card"><span class="label">Test builds, 7 days</span><span class="num mono">{s.testInstalls7 ?? 0}</span></div>
       <div class="card"><span class="label">Downloads via site</span><span class="num mono">{totals.downloads}</span></div>
       <div class="card"><span class="label">GitHub downloads</span><span class="num mono">{totals.github}</span></div>
       <div class="card"><span class="label">New installs</span><span class="num mono">{totals.newInstalls}</span></div>
