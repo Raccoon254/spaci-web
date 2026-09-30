@@ -2,7 +2,7 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '$lib/server/db';
 import type { NoticeRow } from '$lib/notices';
 import type { NoticeData, ReleaseNoticeSpec } from '$lib/server/notice-validation';
-import type { Media } from '$lib/blocks';
+import { plainText, type Media } from '$lib/blocks';
 
 // Active notices only (startsAt <= now < endsAt). Audience filtering happens in
 // selectNotices, which is pure and unit tested. The take bound keeps the query
@@ -46,7 +46,9 @@ export async function upsertReleaseNotice(opts: {
   });
   const startsAt = existing?.startsAt ?? now;
   const endsAt = opts.spec.endsInDays ? new Date(startsAt.getTime() + opts.spec.endsInDays * 86_400_000) : null;
-  const summary = (opts.spec.summary ?? opts.highlight ?? opts.releaseSummary ?? '').slice(0, 200);
+  // One line of plain text, so the stored row also passes the admin validator
+  // (a multi-line release summary would otherwise make the notice uneditable).
+  const summary = plainText(opts.spec.summary ?? opts.highlight ?? opts.releaseSummary ?? '', 200);
   const data = {
     severity: opts.spec.severity,
     title: opts.spec.title ?? `Spaci ${opts.version} is available`,
