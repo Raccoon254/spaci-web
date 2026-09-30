@@ -68,8 +68,43 @@ model DownloadEvent {
   version  String
   platform String
   file     String
+  // "install" (.dmg, Windows setup .exe, .AppImage) or "update" (mac .zip).
+  // Nullable so rows written before this field existed stay valid.
+  kind     String?
   at       DateTime @default(now())
 
   @@index([version])
+  @@schema("spaci")
+}
+
+// Daily heartbeat, one row per (installHash, day). installHash is a salted
+// SHA-256 of the random install ID the app generates; the raw ID is never stored.
+// No IP address, user agent, path or file name is ever kept here.
+model DailyActive {
+  id          String   @id @default(cuid())
+  installHash String
+  day         DateTime @db.Date
+  version     String
+  platform    String
+  arch        String
+  // When this install was first seen (same value on every row of an install).
+  firstSeen   DateTime
+
+  @@unique([installHash, day])
+  @@index([day])
+  @@schema("spaci")
+}
+
+// Daily snapshot of GitHub's release asset download_count (authoritative for
+// direct GitHub downloads). Cumulative counts; deltas are computed on read.
+model GithubDownloadSnapshot {
+  id    String   @id @default(cuid())
+  day   DateTime @db.Date
+  tag   String
+  asset String
+  count Int
+
+  @@unique([day, tag, asset])
+  @@index([day])
   @@schema("spaci")
 }
