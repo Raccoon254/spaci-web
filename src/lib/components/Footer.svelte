@@ -33,6 +33,7 @@
           <a href="/changelog">Changelog</a>
           <a href="/#features">Features</a>
           <a href="/#storage">Storage breakdown</a>
+          <a href="/privacy">Privacy</a>
         </div>
         <div class="col">
           <span class="col-title">Company</span>
