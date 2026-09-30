@@ -46,12 +46,21 @@
   // The recommended download for the detected OS. For mac, default to Apple
   // Silicon; keep the Intel build as a secondary link.
   $: recoFiles = downloadsFor(os, data.latest);
+  // For Linux, the .deb (Ubuntu, Debian) is recommended: it installs the icon and
+  // launches on Ubuntu 24.04, where AppImages need libfuse2 first.
   $: primaryFile =
     os === 'mac'
       ? recoFiles.find((f) => f.arch === 'Apple Silicon') ?? recoFiles[0]
-      : recoFiles[0];
+      : os === 'linux'
+        ? recoFiles.find((f) => /\.deb$/i.test(f.file)) ?? recoFiles[0]
+        : recoFiles[0];
   $: secondaryFile =
-    os === 'mac' ? recoFiles.find((f) => f.arch === 'Intel') ?? null : null;
+    os === 'mac'
+      ? recoFiles.find((f) => f.arch === 'Intel') ?? null
+      : os === 'linux' && primaryFile && /\.deb$/i.test(primaryFile.file)
+        ? recoFiles.find((f) => /\.AppImage$/i.test(f.file)) ?? null
+        : null;
+  $: secondaryLabel = os === 'mac' ? 'Intel Mac instead' : 'AppImage for other distributions';
 
   // One-line terminal installer. macOS/Linux use install.sh, Windows
   // install.ps1; both resolve the latest version at runtime.
@@ -119,7 +128,7 @@
             </a>
           {/if}
           {#if secondaryFile}
-            <a class="reco-alt" href={fileUrl(secondaryFile.file)}>Intel Mac instead</a>
+            <a class="reco-alt" href={fileUrl(secondaryFile.file)}>{secondaryLabel}</a>
           {/if}
         </div>
       </article>

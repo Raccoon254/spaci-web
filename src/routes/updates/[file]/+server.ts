@@ -26,15 +26,15 @@ const FEED_PLATFORM: Record<string, Platform> = {
   'latest-linux.yml': 'linux'
 };
 
-const INSTALLER_EXT = ['.dmg', '.exe', '.AppImage', '.zip', '.blockmap'];
+const INSTALLER_EXT = ['.dmg', '.exe', '.AppImage', '.deb', '.zip', '.blockmap'];
 
 // Classify a countable download. A fresh install is a .dmg, the Windows setup
-// .exe or an .AppImage. The mac .zip is what electron-updater fetches to update
+// .exe, an .AppImage or a .deb. The mac .zip is what electron-updater fetches to update
 // an installed app. Anything else (notably .blockmap) is not a download.
 // Note: on Windows the updater also fetches the setup .exe, so a Windows update
 // cannot be told apart from a fresh install by file name alone.
 function downloadKind(file: string): 'install' | 'update' | null {
-  if (/\.(dmg|exe|AppImage)$/.test(file)) return 'install';
+  if (/\.(dmg|exe|AppImage|deb)$/.test(file)) return 'install';
   if (/\.zip$/.test(file)) return 'update';
   return null;
 }
@@ -48,6 +48,11 @@ function updateArtifacts(files: ReleaseFile[], platform: Platform): ReleaseFile[
   if (platform === 'mac') {
     const zips = files.filter((f) => /\.zip$/i.test(f.file));
     if (zips.length) return zips;
+  }
+  // electron-updater can only replace an AppImage; a .deb is installed with apt.
+  if (platform === 'linux') {
+    const images = files.filter((f) => /\.AppImage$/i.test(f.file));
+    if (images.length) return images;
   }
   return files;
 }
