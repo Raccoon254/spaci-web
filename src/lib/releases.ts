@@ -6,10 +6,14 @@
 //   3. The electron-updater feed (/updates/latest-mac.yml etc. are generated
 //      from the newest release here).
 //
-// When you cut a release, prepend a new entry, set the artifact file names and
-// sha512 (printed by electron-builder), then run `npm run db:seed` to mirror
-// the data into Neon for the dynamic endpoints. Keep the package.json "version"
-// in sync with the newest entry below.
+// This file is only the fallback: the app's release workflow publishes each
+// release to Neon, which is what the site serves. `npm run refresh:baseline`
+// (also run as `prebuild`) keeps it level with the latest GitHub release, and
+// `npm run check:releases` fails when it is behind.
+//
+// If you edit by hand: prepend a new entry, set the artifact file names and
+// sha512 (printed by electron-builder), and keep the package.json "version" in
+// sync with the newest entry below.
 
 export type Platform = 'mac' | 'windows' | 'linux';
 
@@ -47,9 +51,63 @@ export interface Release {
 
 export const releases: Release[] = [
   {
+    version: '2.3.0',
+    date: '2026-10-01',
+    tag: 'Latest',
+    major: false,
+    summary: 'One confirm to clear every developer build folder and cache, and a Storage screen that accounts for your whole disk',
+    added: [],
+    improved: [],
+    fixed: [],
+    files: [
+      { platform: 'mac', arch: 'Intel', file: 'Spaci-2.3.0-mac.zip', size: '96 MB', bytes: 100694558, sha512: 'fIuTHtT83z/2ft2Qo4kKVH7WwlQ0RdYLGSLXGuJLbuL9rErcumdk5SyNcF3zxFR0jIAR/lK2YSCZICl9T5g82Q==' },
+      { platform: 'mac', arch: 'Apple Silicon', file: 'Spaci-2.3.0-arm64-mac.zip', size: '89 MB', bytes: 93173187, sha512: '51JdtaGAHbhN9r4m0qPEyaOPqA4MR5X8jdDbZwLfJGh++QpRbOoWXzMEXy7pipKRxr9y8K+VfQ41vubDH5y66A==' },
+      { platform: 'mac', arch: 'Intel', file: 'Spaci-2.3.0.dmg', size: '100 MB', bytes: 104366372, sha512: 'jcluYckhqIAUoQL29wN0xLFoFESJ2o2rFRkirHNuj8+/sd/m3sW9AP62IWhglex7ykZQ1evleQ7QU0E5UHBR5w==' },
+      { platform: 'mac', arch: 'Apple Silicon', file: 'Spaci-2.3.0-arm64.dmg', size: '92 MB', bytes: 96825082, sha512: 'xtlegvCmBU58J6QAYFgScVFCpUtQgWIXnN739izP3e1WzYm3hJDvKRD82ZO5/6m7SKx7NoL8T9HqAqg+qRcmzQ==' },
+      { platform: 'windows', arch: 'x64', file: 'Spaci-Setup-2.3.0.exe', size: '76 MB', bytes: 79549041, sha512: '2rOAuOq3Hbmv7oZxFpt6buPaa9fK7Cty5PLt/IsyVBFHG03bpwkqg0xvqKXXzZLCU3EOpCm+BOLTFmWAXAs8KA==' },
+      { platform: 'linux', arch: 'x86_64', file: 'Spaci-2.3.0.AppImage', size: '103 MB', bytes: 108433366, sha512: 'Y+PfQLTBIxuJHcThQZENKn50Zn7T+TFRYPR/CGDaB2vrLzjeP8kzcN/qDjD95N+Z5I6Y83SgxC8z7uptP9bRmA==' }
+    ]
+  },
+  {
+    version: '2.2.1',
+    date: '2026-09-30',
+    tag: 'Release',
+    major: false,
+    summary: 'A safety and honesty update: nothing irreversible is deleted without asking, large files go to the Trash, and History records exactly what happened.',
+    added: [],
+    improved: [],
+    fixed: [],
+    files: [
+      { platform: 'mac', arch: 'Intel', file: 'Spaci-2.2.1-mac.zip', size: '96 MB', bytes: 100362908, sha512: 'S2f28vIqKnyf4frlX9FqdW0PLfXN+Lfs4W2FIEuyoOnq0MUbiGsyVKpo/k51oghM9u529Ny1SlIIqgH3F9DeIg==' },
+      { platform: 'mac', arch: 'Apple Silicon', file: 'Spaci-2.2.1-arm64-mac.zip', size: '89 MB', bytes: 92841520, sha512: 'I0jsV011dQ9upe2QogJne1jzmrZUBZWpLQMoG0AtNaMFJiYQ3za78NkYPdr+t7hzmH7x6dHrs8vT3IDD06qyWg==' },
+      { platform: 'mac', arch: 'Intel', file: 'Spaci-2.2.1.dmg', size: '99 MB', bytes: 104025114, sha512: 'N46AgC5987JPopceFqzVrvg+lwrKEZdLBhzI+cOuZU9a/8FFtNG9uqtH1tYKyrVMk4Vrd5RBiRWfVIqwfwlCRA==' },
+      { platform: 'mac', arch: 'Apple Silicon', file: 'Spaci-2.2.1-arm64.dmg', size: '92 MB', bytes: 96489218, sha512: 'upM1SuNNfdc1hPkwhxtR1Vg2c0AUKvkBoEbw5T1MMSv18eoShNw5MHGMXs7ApZjSWgUTR98lLY9RZvXwJrK3ng==' },
+      { platform: 'windows', arch: 'x64', file: 'Spaci-Setup-2.2.1.exe', size: '76 MB', bytes: 79267239, sha512: 'XryUCYDXKPmbB9tsrEWJBsbH/4Klv3emVL89/6XQXqmxQJ9jpN3rpMNvaUxXJZYnju5N4MvdhEq/Sk5KFParSA==' },
+      { platform: 'linux', arch: 'x86_64', file: 'Spaci-2.2.1.AppImage', size: '103 MB', bytes: 108072656, sha512: 'LcVAmNGLCOwrJwVWJE4Lbp2OBHxe/BBSz5Gjz+49kWF6rJLjR3laH7SlDSRFyjRsRPjk2Bh9BpyWQJmFPacFtQ==' }
+    ]
+  },
+  {
+    version: '2.2.0',
+    date: '2026-09-30',
+    tag: 'Release',
+    major: false,
+    summary: 'Spaci now finds the space AI coding tools and developer caches take up, explains what macOS calls System Data, and never deletes a folder it cannot prove is build output.',
+    added: [],
+    improved: [],
+    fixed: [],
+    files: [
+      { platform: 'mac', arch: 'Intel', file: 'Spaci-2.2.0-mac.zip', size: '96 MB', bytes: 100347519, sha512: '3/TpaTghfj3oOxp9sj4XUFWnug/QBrjW+Be56f6EudmWydgOPdGHFVQw0E/+R4JyI61V7OBlb7p4Sntz7dGyCA==' },
+      { platform: 'mac', arch: 'Apple Silicon', file: 'Spaci-2.2.0-arm64-mac.zip', size: '89 MB', bytes: 92826119, sha512: 'iN3+ldVm4SxXSJmbNG6bA/SaB17pTyFY1vtM/hFmdC6VafVwhjy7eFbpsNRVufqSZDSYpuHaIHYlnde++pl3fQ==' },
+      { platform: 'mac', arch: 'Intel', file: 'Spaci-2.2.0.dmg', size: '99 MB', bytes: 104035630, sha512: 'MyTYpiZe5BZ5CwxvNOMmSzPvHN7EP82MpNT7x48ZiLT53gOHhHB/IsIG3czRW/JPrKO/sUt8umRGvYnMZzD9fA==' },
+      { platform: 'mac', arch: 'Apple Silicon', file: 'Spaci-2.2.0-arm64.dmg', size: '92 MB', bytes: 96481667, sha512: '5Ufoe6r3+kgoldSEVFif46LmO6WAM24pzfxpcbXEQ/3g35i3ymn6DOVOXkTgIa306mmtJ38E4983LWGVv8Rk5A==' },
+      { platform: 'windows', arch: 'x64', file: 'Spaci-Setup-2.2.0.exe', size: '76 MB', bytes: 79255051, sha512: 'ymBuXFOjnY6wRzjrsnmPeJNgttLqZkRAhBV2yK4PTbwhwGMLPFR2BH0IoXC3UAqXwlqsnS5GpHVbUFovBsyYaA==' },
+      { platform: 'linux', arch: 'x86_64', file: 'Spaci-2.2.0.AppImage', size: '103 MB', bytes: 108093064, sha512: 'KNkt141KJPk++PfC0xJii7U7TtGiKjjyC46ISwnbA4CzsDA0FMgfGtsrqL7JGgkYmFM9qmDqyU8tv3aCURUfEw==' }
+    ]
+  },
+  {
     version: '2.1.0',
     date: '2026-08-17',
-    tag: 'Latest',
+    tag: 'Release',
     major: false,
     summary: 'Spaci now sees Docker, and scans your projects about ten times faster.',
     added: [
