@@ -6,7 +6,7 @@ const config = {
   preprocess: vitePreprocess(),
   kit: {
     // Pin the serverless runtime so the build's Node version does not matter.
-    adapter: adapter({ runtime: 'nodejs20.x' })
+    adapter: adapter({ runtime: 'nodejs22.x' })
   }
 };
 
