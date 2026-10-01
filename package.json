@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Spaci marketing site, changelog and update feed. Built by kentom.co.ke.",
   "engines": {
-    "node": "20.x"
+    "node": "22.x"
   },
   "scripts": {
     "dev": "vite dev",
