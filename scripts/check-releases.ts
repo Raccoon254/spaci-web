@@ -1,5 +1,5 @@
 // Validate src/lib/releases.ts, the static baseline the site falls back to when
-// Neon is unreachable.
+// Neon is unreachable, and compare it with the app's latest GitHub release.
 //
 //   npm run check:releases
 //
@@ -9,6 +9,8 @@
 
 import { readFileSync } from 'node:fs';
 import { releases, type Release } from '../src/lib/releases';
+import { compareSemver } from '../src/lib/semver';
+import { fetchPublished, GitHubUnavailable } from './baseline-lib';
 
 const errors: string[] = [];
 const warnings: string[] = [];
@@ -75,6 +77,22 @@ if (!latest) {
   for (const r of releases.slice(1)) {
     const missing = r.files.filter((f) => !f.sha512).length;
     if (missing) warn(`${r.version}: ${missing} artifact(s) without sha512 (older release, not served by the feed)`);
+  }
+}
+
+// The baseline must not trail the app's newest published release. This is the
+// cross-repository check the checks above cannot make. Needs no credential (the
+// repo is public); an unreachable or rate-limited GitHub only warns, so an
+// outage never blocks unrelated work. Skip with SKIP_GITHUB_CHECK=1.
+if (latest && !process.env.SKIP_GITHUB_CHECK) {
+  try {
+    const published = (await fetchPublished())[0];
+    if (published && compareSemver(published.tag_name.replace(/^v/, ''), latest.version) > 0) {
+      fail(`baseline is stale: the app's newest release is ${published.tag_name} but releases.ts starts at ${latest.version}. Run \`npm run refresh:baseline\` and commit the result`);
+    }
+  } catch (e) {
+    if (e instanceof GitHubUnavailable) warn(`could not compare with GitHub releases: ${e.message}`);
+    else throw e;
   }
 }
 

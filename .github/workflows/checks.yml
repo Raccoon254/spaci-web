@@ -12,6 +12,10 @@ on:
   push:
     branches:
       - main
+  # The app releases without touching this repo, so run daily to notice a
+  # baseline that has fallen behind (the Release data step fails when it has).
+  schedule:
+    - cron: '17 6 * * *'
 
 permissions:
   contents: read
@@ -25,7 +29,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: Install dependencies
@@ -33,6 +37,9 @@ jobs:
 
       - name: Release data
         run: npm run check:releases
+        env:
+          # Raises the GitHub API rate limit only; the repo is public.
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Unit tests
         run: npm test

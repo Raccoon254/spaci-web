@@ -1,15 +1,17 @@
 {
   "name": "spaci-web",
   "private": true,
-  "version": "2.1.0",
+  "version": "2.3.0",
   "type": "module",
   "description": "Spaci marketing site, changelog and update feed. Built by kentom.co.ke.",
   "engines": {
-    "node": "20.x"
+    "node": "22.x"
   },
   "scripts": {
     "dev": "vite dev",
+    "prebuild": "tsx scripts/refresh-baseline.ts",
     "build": "vite build",
+    "refresh:baseline": "tsx scripts/refresh-baseline.ts",
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:releases": "tsx scripts/check-releases.ts",
